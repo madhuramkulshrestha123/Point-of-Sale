@@ -444,38 +444,42 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
   console.log('ThermalInvoice - subtotal:', subtotal, 'finalTotal:', finalTotal);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto p-4">
-      <div className="relative">
-        {/* Print/Download/Share Buttons */}
-        <div className="absolute -top-12 right-0 flex gap-2 print:hidden">
-          <button
-            onClick={handlePrint}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 shadow-md flex items-center gap-2"
-          >
-            🖨️ Print Bill
-          </button>
-          <button
-            onClick={handleDownloadPDF}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 shadow-md flex items-center gap-2"
-          >
-            📄 Save as PDF
-          </button>
-          <button
-            onClick={handleShareBill}
-            className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 shadow-md flex items-center gap-2"
-          >
-            📤 Share Bill
-          </button>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 shadow-md"
-          >
-            ✕ Close
-          </button>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="relative w-full max-w-md max-h-[90vh] flex flex-col">
+        {/* Print/Download/Share Buttons - Fixed at top */}
+        <div className="flex-shrink-0 bg-white rounded-t-lg p-3 border-b sticky top-0 z-10">
+          <div className="flex gap-2 flex-wrap justify-center">
+            <button
+              onClick={handlePrint}
+              className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 shadow-md flex items-center gap-1 text-sm"
+            >
+              🖨️ Print
+            </button>
+            <button
+              onClick={handleDownloadPDF}
+              className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 shadow-md flex items-center gap-1 text-sm"
+            >
+              📄 PDF
+            </button>
+            <button
+              onClick={handleShareBill}
+              className="px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 shadow-md flex items-center gap-1 text-sm"
+            >
+              📤 Share
+            </button>
+            <button
+              onClick={onClose}
+              className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 shadow-md text-sm"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
-        {/* Thermal Receipt - Add ID for print isolation */}
-        <div id="thermal-bill-content" className="bg-white mx-auto" style={{ width: '320px', fontFamily: 'monospace' }}>
+        {/* Scrollable Bill Content */}
+        <div className="flex-1 overflow-y-auto bg-white rounded-b-lg">
+          {/* Thermal Receipt */}
+          <div id="thermal-bill-content" className="bg-white mx-auto" style={{ width: '320px', fontFamily: 'monospace' }}>
           <div className="p-4 text-black" style={{ fontSize: '11px', lineHeight: '1.4' }}>
             {/* Header Section */}
             <div className="text-center mb-3">
@@ -672,6 +676,7 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
               <p>Printed: {new Date().toLocaleString('en-IN')}</p>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </div>
