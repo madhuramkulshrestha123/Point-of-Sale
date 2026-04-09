@@ -1,13 +1,14 @@
 import React from 'react';
 
+// Category images mapping - using real PNG images
 const categories = [
-  { id: 'all', name: 'All Products', icon: '📦' },
-  { id: 'engine-oils', name: 'Engine Oils', icon: '🛢️' },
-  { id: 'brake-parts', name: 'Brake Parts', icon: '🔧' },
-  { id: 'filters', name: 'Filters', icon: '🌪️' },
-  { id: 'batteries', name: 'Batteries', icon: '🔋' },
-  { id: 'spark-plugs', name: 'Spark Plugs', icon: '⚡' },
-  { id: 'accessories', name: 'Accessories', icon: '✨' },
+  { id: 'all', name: 'All Products', icon: '/imgs/all_products.svg', useEmoji: false },
+  { id: 'engine-oils', name: 'Engine Oils', icon: '/imgs/engine_oil.png', useEmoji: false },
+  { id: 'brake-parts', name: 'Brake Parts', icon: '/imgs/brake parts.png', useEmoji: false },
+  { id: 'filters', name: 'Filters', icon: '/imgs/filter.png', useEmoji: false },
+  { id: 'batteries', name: 'Batteries', icon: '/imgs/battery.png', useEmoji: false },
+  { id: 'spark-plugs', name: 'Spark Plugs', icon: '/imgs/spark_plug.png', useEmoji: false },
+  { id: 'accessories', name: 'Accessories', icon: '/imgs/acceosories.png', useEmoji: false },
 ];
 
 const SidebarCategories = ({ selectedCategory, onSelectCategory }) => {
@@ -33,7 +34,27 @@ const SidebarCategories = ({ selectedCategory, onSelectCategory }) => {
                 : 'bg-gray-50 text-gray-700 hover:bg-accent/30 hover:shadow-sm hover:scale-102'
             }`}
           >
-            <span className="text-2xl group-hover:scale-110 transition-transform">{category.icon}</span>
+            <span className="w-8 h-8 flex-shrink-0 group-hover:scale-110 transition-transform">
+              <img 
+                src={category.icon} 
+                alt={category.name}
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  // Fallback to emoji if image fails
+                  const emojiMap = {
+                    'all': '📦',
+                    'engine-oils': '🛢️',
+                    'brake-parts': '🔧',
+                    'filters': '🌪️',
+                    'batteries': '🔋',
+                    'spark-plugs': '⚡',
+                    'accessories': '✨'
+                  };
+                  e.target.style.display = 'none';
+                  e.target.parentElement.innerHTML = emojiMap[category.id] || '📦';
+                }}
+              />
+            </span>
             <span className="font-semibold text-sm">{category.name}</span>
           </button>
         ))}

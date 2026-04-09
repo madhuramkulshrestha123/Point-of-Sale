@@ -3,6 +3,30 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+// Category image mapping
+const categoryImageMap = {
+  'engine-oils': '/imgs/engine_oil.png',
+  'brake-parts': '/imgs/brake parts.png',
+  'filters': '/imgs/filter.png',
+  'batteries': '/imgs/battery.png',
+  'spark-plugs': '/imgs/spark_plug.png',
+  'accessories': '/imgs/acceosories.png',
+};
+
+// Default image for all products
+const defaultCategoryImage = '/imgs/all_products.svg';
+
+// Fallback emojis for categories
+const categoryEmojis = {
+  'all': '📦',
+  'engine-oils': '🛢️',
+  'brake-parts': '🔧',
+  'filters': '🌪️',
+  'batteries': '🔋',
+  'spark-plugs': '⚡',
+  'accessories': '✨',
+};
+
 const ProductDetailModal = ({ isOpen, onClose, product, onUpdate }) => {
   const [activeTab, setActiveTab] = useState('details');
   const [showStockModal, setShowStockModal] = useState(false);
@@ -224,9 +248,25 @@ const ProductDetailModal = ({ isOpen, onClose, product, onUpdate }) => {
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary-light/20 to-secondary/20 flex items-center justify-center overflow-hidden">
               {product.image ? (
-                <img src={product.image} alt={product.name} className="w-full h-full object-cover" onError={(e) => e.target.parentElement.innerHTML = '🔧'} />
+                <img src={product.image} alt={product.name} className="w-full h-full object-cover" onError={(e) => {
+                  // Try category image first
+                  const catImage = categoryImageMap[product.category];
+                  if (catImage) {
+                    e.target.src = catImage;
+                    e.target.onerror = () => {
+                      e.target.style.display = 'none';
+                      e.target.parentElement.innerHTML = `<span class="text-3xl">${categoryEmojis[product.category] || '🔧'}</span>`;
+                    };
+                  } else {
+                    e.target.style.display = 'none';
+                    e.target.parentElement.innerHTML = `<span class="text-3xl">${categoryEmojis[product.category] || '🔧'}</span>`;
+                  }
+                }} />
               ) : (
-                <span className="text-3xl">🔧</span>
+                <img src={categoryImageMap[product.category] || defaultCategoryImage} alt={product.category} className="w-full h-full object-cover" onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.parentElement.innerHTML = `<span class="text-3xl">${categoryEmojis[product.category] || '📦'}</span>`;
+                }} />
               )}
             </div>
             <div>

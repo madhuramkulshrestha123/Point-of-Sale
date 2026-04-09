@@ -1,5 +1,29 @@
 import React from 'react';
 
+// Category image mapping
+const categoryImageMap = {
+  'engine-oils': '/imgs/engine_oil.png',
+  'brake-parts': '/imgs/brake parts.png',
+  'filters': '/imgs/filter.png',
+  'batteries': '/imgs/battery.png',
+  'spark-plugs': '/imgs/spark_plug.png',
+  'accessories': '/imgs/acceosories.png',
+};
+
+// Default image for all products
+const defaultCategoryImage = '/imgs/all_products.svg';
+
+// Fallback emojis for categories
+const categoryEmojis = {
+  'all': '📦',
+  'engine-oils': '🛢️',
+  'brake-parts': '🔧',
+  'filters': '🌪️',
+  'batteries': '🔋',
+  'spark-plugs': '⚡',
+  'accessories': '✨',
+};
+
 const FavoritesBar = ({ favorites, products, onAddToCart }) => {
   const favoriteProducts = products.filter(p => favorites.includes(p._id));
   
@@ -45,12 +69,37 @@ const FavoritesBar = ({ favorites, products, onAddToCart }) => {
               title={product.name}
             >
               <div className="w-8 h-8 rounded-lg overflow-hidden bg-gradient-to-br from-primary-light/20 to-secondary/20 flex items-center justify-center">
-                <img 
-                  src={product.image} 
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => e.target.parentElement.innerHTML = '🔧'}
-                />
+                {product.image ? (
+                  <img 
+                    src={product.image} 
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Try category image first
+                      const catImage = categoryImageMap[product.category];
+                      if (catImage) {
+                        e.target.src = catImage;
+                        e.target.onerror = () => {
+                          e.target.style.display = 'none';
+                          e.target.parentElement.innerHTML = `<span class="text-lg">${categoryEmojis[product.category] || '🔧'}</span>`;
+                        };
+                      } else {
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = `<span class="text-lg">${categoryEmojis[product.category] || '🔧'}</span>`;
+                      }
+                    }}
+                  />
+                ) : (
+                  <img 
+                    src={categoryImageMap[product.category] || defaultCategoryImage} 
+                    alt={product.category || 'Product'}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.parentElement.innerHTML = `<span class="text-lg">${categoryEmojis[product.category] || '📦'}</span>`;
+                    }}
+                  />
+                )}
               </div>
               <div className="text-left">
                 <p className="text-xs font-bold text-gray-800 truncate max-w-[120px] group-hover:text-primary-dark transition-colors">

@@ -3,14 +3,14 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-// Category images mapping
+// Category images mapping - using real PNG images
 const categoryImages = [
-  { id: 'engine-oils', name: 'Engine Oils', icon: '🛢️', color: 'from-blue-500 to-blue-600' },
-  { id: 'brake-parts', name: 'Brake Parts', icon: '⚙️', color: 'from-red-500 to-red-600' },
-  { id: 'filters', name: 'Filters', icon: '🔧', color: 'from-green-500 to-green-600' },
-  { id: 'batteries', name: 'Batteries', icon: '🔋', color: 'from-yellow-500 to-yellow-600' },
-  { id: 'spark-plugs', name: 'Spark Plugs', icon: '⚡', color: 'from-purple-500 to-purple-600' },
-  { id: 'accessories', name: 'Accessories', icon: '🚗', color: 'from-indigo-500 to-indigo-600' },
+  { id: 'engine-oils', name: 'Engine Oils', image: '/imgs/engine_oil.png', color: 'from-blue-500 to-blue-600' },
+  { id: 'brake-parts', name: 'Brake Parts', image: '/imgs/brake parts.png', color: 'from-red-500 to-red-600' },
+  { id: 'filters', name: 'Filters', image: '/imgs/filter.png', color: 'from-green-500 to-green-600' },
+  { id: 'batteries', name: 'Batteries', image: '/imgs/battery.png', color: 'from-yellow-500 to-yellow-600' },
+  { id: 'spark-plugs', name: 'Spark Plugs', image: '/imgs/spark_plug.png', color: 'from-purple-500 to-purple-600' },
+  { id: 'accessories', name: 'Accessories', image: '/imgs/acceosories.png', color: 'from-indigo-500 to-indigo-600' },
 ];
 
 const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
@@ -203,8 +203,25 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
                   }`}
                   style={{ minHeight: '44px' }}
                 >
-                  <div className={`w-10 h-10 md:w-12 md:h-12 mx-auto rounded-lg bg-gradient-to-br ${cat.color} flex items-center justify-center text-xl md:text-2xl mb-1 md:mb-2`}>
-                    {cat.icon}
+                  <div className={`w-10 h-10 md:w-12 md:h-12 mx-auto rounded-lg bg-gradient-to-br ${cat.color} flex items-center justify-center mb-1 md:mb-2 overflow-hidden`}>
+                    <img 
+                      src={cat.image} 
+                      alt={cat.name}
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        // Fallback to emoji if image fails
+                        const emojiMap = {
+                          'engine-oils': '🛢️',
+                          'brake-parts': '⚙️',
+                          'filters': '🔧',
+                          'batteries': '🔋',
+                          'spark-plugs': '⚡',
+                          'accessories': '🚗'
+                        };
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = `<span class="text-xl md:text-2xl">${emojiMap[cat.id] || '📦'}</span>`;
+                      }}
+                    />
                   </div>
                   <p className="text-[10px] md:text-xs font-medium text-gray-700 text-center">{cat.name}</p>
                 </button>

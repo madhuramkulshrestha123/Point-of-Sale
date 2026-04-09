@@ -3,6 +3,30 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+// Category image mapping
+const categoryImageMap = {
+  'engine-oils': '/imgs/engine_oil.png',
+  'brake-parts': '/imgs/brake parts.png',
+  'filters': '/imgs/filter.png',
+  'batteries': '/imgs/battery.png',
+  'spark-plugs': '/imgs/spark_plug.png',
+  'accessories': '/imgs/acceosories.png',
+};
+
+// Default image for all products
+const defaultCategoryImage = '/imgs/all_products.svg';
+
+// Fallback emojis for categories
+const categoryEmojis = {
+  'all': '📦',
+  'engine-oils': '🛢️',
+  'brake-parts': '🔧',
+  'filters': '🌪️',
+  'batteries': '🔋',
+  'spark-plugs': '⚡',
+  'accessories': '✨',
+};
+
 const TopProducts = ({ dateRange = 'week' }) => {
   const [topProducts, setTopProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -120,19 +144,37 @@ const TopProducts = ({ dateRange = 'week' }) => {
             </div>
 
             {/* Product Image */}
-            <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gradient-to-br from-primary-light/20 to-secondary/20 overflow-hidden flex items-center justify-center text-2xl">
+            <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gradient-to-br from-primary-light/20 to-secondary/20 overflow-hidden flex items-center justify-center">
               {product.image ? (
                 <img 
                   src={product.image} 
                   alt={product.name}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.parentElement.innerHTML = '🔧';
+                    // Try category image first
+                    const catImage = categoryImageMap[product.category?.toLowerCase()];
+                    if (catImage) {
+                      e.target.src = catImage;
+                      e.target.onerror = () => {
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = `<span class="text-2xl">${categoryEmojis[product.category?.toLowerCase()] || '🔧'}</span>`;
+                      };
+                    } else {
+                      e.target.style.display = 'none';
+                      e.target.parentElement.innerHTML = `<span class="text-2xl">${categoryEmojis[product.category?.toLowerCase()] || '🔧'}</span>`;
+                    }
                   }}
                 />
               ) : (
-                '🔧'
+                <img 
+                  src={categoryImageMap[product.category?.toLowerCase()] || defaultCategoryImage} 
+                  alt={product.category || 'Product'}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.parentElement.innerHTML = `<span class="text-2xl">${categoryEmojis[product.category?.toLowerCase()] || '📦'}</span>`;
+                  }}
+                />
               )}
             </div>
 
