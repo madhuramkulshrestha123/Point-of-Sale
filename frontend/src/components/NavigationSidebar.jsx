@@ -92,8 +92,12 @@ const NavigationSidebar = ({ onMenuClick, activeMenu, user, onLogout }) => {
       {/* Profile Modal */}
       {showProfile && (
         <ProfileModal
+          isOpen={showProfile}
           user={user}
-          onClose={() => setShowProfile(false)}
+          onClose={() => {
+            console.log('NavigationSidebar: Closing profile modal');
+            setShowProfile(false);
+          }}
           onUpdate={(updatedUser) => {
             localStorage.setItem('user', JSON.stringify(updatedUser));
           }}

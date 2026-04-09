@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-const ProfileModal = ({ user, onClose, onUpdate }) => {
+const ProfileModal = ({ user, isOpen, onClose, onUpdate }) => {
   const [formData, setFormData] = useState({
     businessName: user.businessName || '',
     ownerName: user.ownerName || '',
@@ -138,6 +138,9 @@ const ProfileModal = ({ user, onClose, onUpdate }) => {
     }
   };
 
+  // Only render when isOpen is true
+  if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -145,8 +148,12 @@ const ProfileModal = ({ user, onClose, onUpdate }) => {
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-2xl font-bold text-gray-900">Business Profile</h2>
           <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl"
+            onClick={() => {
+              console.log('Close button clicked');
+              onClose();
+            }}
+            className="text-gray-400 hover:text-gray-600 text-2xl font-bold cursor-pointer transition-colors"
+            aria-label="Close profile modal"
           >
             ×
           </button>

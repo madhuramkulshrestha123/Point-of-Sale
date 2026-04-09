@@ -511,8 +511,12 @@ const POSPage = ({ user, onLogout }) => {
           
           {/* Profile Modal */}
           <ProfileModal
+            isOpen={showProfileModal}
             user={user}
-            onClose={() => setShowProfileModal(false)}
+            onClose={() => {
+              console.log('POSPage: Closing profile modal');
+              setShowProfileModal(false);
+            }}
             onUpdate={(updatedUser) => {
               // Update localStorage with new user data
               localStorage.setItem('user', JSON.stringify(updatedUser));
