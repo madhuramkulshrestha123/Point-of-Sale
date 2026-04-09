@@ -7,7 +7,7 @@ import CustomerDetailModal from '../components/crm/CustomerDetailModal';
 import MobileCustomerSummaryCards from '../components/crm/MobileCustomerSummaryCards';
 import MobileCustomerList from '../components/crm/MobileCustomerList';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL;
 
 const CRMPage = () => {
   const [customers, setCustomers] = useState([]);

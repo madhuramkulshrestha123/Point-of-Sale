@@ -20,7 +20,7 @@ app.use(cors({
     
     const allowedOrigins = process.env.FRONTEND_URL
       ? process.env.FRONTEND_URL.split(',')
-      : ['https://point-of-sale-m2.vercel.app'];
+      : ['https://point-of-sale-m1.vercel.app'];
     
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
@@ -30,7 +30,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Pragma']
 })); // Enable CORS with configured origins
 app.use(compression()); // Compress responses
 app.use(morgan('dev')); // Logging

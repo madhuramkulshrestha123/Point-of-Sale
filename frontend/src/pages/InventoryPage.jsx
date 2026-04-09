@@ -8,7 +8,7 @@ import LowStockAlert from '../components/inventory/LowStockAlert';
 import AddProductModal from '../components/inventory/AddProductModal';
 import ProductDetailModal from '../components/inventory/ProductDetailModal';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL;
 
 const InventoryPage = () => {
   const [products, setProducts] = useState([]);
