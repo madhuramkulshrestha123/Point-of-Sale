@@ -120,114 +120,42 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
 
   const handleShareBill = async () => {
     try {
-      const thermalContent = document.getElementById('thermal-bill-content');
-      if (!thermalContent) {
-        alert('Could not find invoice content');
-        return;
-      }
-
+      const saleData = invoiceData;
+      
       // Check if Web Share API is supported
       if (navigator.share) {
-        // Create a canvas from the thermal content
-        const canvas = await htmlToCanvas(thermalContent);
+        // Create a simple text with invoice details
+        const shareText = `📄 Invoice: ${saleData.invoiceNumber}
+💰 Amount: ${getCurrencySymbol()}${finalTotal.toFixed(2)}
+📅 Date: ${dateStr}
+👤 Customer: ${saleData.customer?.name || 'Walk-in Customer'}
+💳 Payment: ${(saleData.paymentMethod || 'N/A').toUpperCase()}`;
         
-        // Convert canvas to blob
-        canvas.toBlob(async (blob) => {
-          if (blob) {
-            const file = new File([blob], `invoice-${invoiceData.invoiceNumber}.png`, { type: 'image/png' });
-            
-            try {
-              await navigator.share({
-                title: `Invoice ${invoiceData.invoiceNumber}`,
-                text: `Bill for ${getCurrencySymbol()}${finalTotal.toFixed(2)}`,
-                files: [file]
-              });
-              console.log('Shared successfully');
-            } catch (shareError) {
-              console.log('Share canceled or failed:', shareError);
-              // Fallback to download
-              downloadCanvasAsImage(canvas);
-            }
+        try {
+          await navigator.share({
+            title: `Invoice ${saleData.invoiceNumber}`,
+            text: shareText,
+          });
+          console.log('Shared successfully');
+        } catch (shareError) {
+          if (shareError.name === 'AbortError') {
+            console.log('Share canceled');
+          } else {
+            console.log('Share failed, falling back to clipboard');
+            navigator.clipboard.writeText(shareText);
+            alert('Bill details copied to clipboard!');
           }
-        }, 'image/png');
+        }
       } else {
-        // Fallback: download as image
-        const canvas = await htmlToCanvas(thermalContent);
-        downloadCanvasAsImage(canvas);
+        // Fallback: copy to clipboard
+        const shareText = `Invoice: ${saleData.invoiceNumber}, Amount: ${getCurrencySymbol()}${finalTotal.toFixed(2)}, Date: ${dateStr}`;
+        navigator.clipboard.writeText(shareText);
+        alert('Bill details copied to clipboard!');
       }
     } catch (error) {
       console.error('Share error:', error);
-      alert('Failed to share bill. Downloading as image instead.');
-      // Fallback to download
-      const thermalContent = document.getElementById('thermal-bill-content');
-      if (thermalContent) {
-        const canvas = await htmlToCanvas(thermalContent);
-        downloadCanvasAsImage(canvas);
-      }
+      alert('Failed to share bill');
     }
-  };
-
-  // Helper function to convert HTML to canvas
-  const htmlToCanvas = (element) => {
-    return new Promise((resolve) => {
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d');
-      const scale = 2; // Higher quality
-      
-      // Calculate dimensions
-      const rect = element.getBoundingClientRect();
-      canvas.width = rect.width * scale;
-      canvas.height = rect.height * scale;
-      
-      // Create SVG with the HTML content
-      const html = element.innerHTML;
-      const svg = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="${rect.width}" height="${rect.height}">
-          <foreignObject width="100%" height="100%">
-            <div xmlns="http://www.w3.org/1999/xhtml" style="width: ${rect.width}px; font-family: monospace;">
-              ${html}
-            </div>
-          </foreignObject>
-        </svg>
-      `;
-      
-      const img = new Image();
-      const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(svgBlob);
-      
-      img.onload = () => {
-        context.scale(scale, scale);
-        context.fillStyle = '#ffffff';
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        context.drawImage(img, 0, 0);
-        URL.revokeObjectURL(url);
-        resolve(canvas);
-      };
-      
-      img.onerror = () => {
-        // Fallback: create a simple canvas with message
-        canvas.width = 400;
-        canvas.height = 200;
-        context.fillStyle = '#ffffff';
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        context.fillStyle = '#000000';
-        context.font = '16px monospace';
-        context.fillText('Invoice image generation failed', 20, 100);
-        URL.revokeObjectURL(url);
-        resolve(canvas);
-      };
-      
-      img.src = url;
-    });
-  };
-
-  // Helper function to download canvas as image
-  const downloadCanvasAsImage = (canvas) => {
-    const link = document.createElement('a');
-    link.download = `invoice-${invoiceData.invoiceNumber}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-    alert('Invoice downloaded as image');
   };
 
   const handlePrint = () => {
@@ -245,10 +173,7 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
       return;
     }
 
-    // Clone the content and inline all styles for proper PDF rendering
-    const clonedContent = thermalContent.cloneNode(true);
-    
-    // Build complete HTML for print window with inline styles
+    // Build complete HTML for print window with proper centering and styling
     const printHTML = `
       <!DOCTYPE html>
       <html>
@@ -261,7 +186,8 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
             font-family: monospace;
             width: 320px;
             margin: 0 auto;
-            padding: 16px;
+            padding: 0;
+            background: white;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
@@ -271,31 +197,64 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
           }
           @media print {
             body { 
-              margin: 0; 
-              padding: 10px;
-              width: 320px;
+              width: 100%;
+              max-width: 320px;
+              margin: 0 auto;
+              padding: 0;
             }
-            .no-print { display: none !important; }
           }
+          /* Ensure centering and proper formatting */
+          #print-content {
+            width: 320px;
+            margin: 0 auto;
+            font-family: monospace;
+          }
+          .text-center { text-align: center; }
+          .flex { display: flex; }
+          .justify-between { justify-content: space-between; }
+          .border-t { border-top: 1px solid #000; }
+          .border-b { border-bottom: 1px solid #000; }
+          .border-black { border-color: #000; }
+          .font-bold { font-weight: bold; }
+          .mb-1 { margin-bottom: 4px; }
+          .mb-2 { margin-bottom: 8px; }
+          .mb-3 { margin-bottom: 12px; }
+          .mt-1 { margin-top: 4px; }
+          .mt-2 { margin-top: 8px; }
+          .mt-3 { margin-top: 12px; }
+          .p-4 { padding: 16px; }
+          .py-1 { padding-top: 4px; padding-bottom: 4px; }
+          .py-2 { padding-top: 8px; padding-bottom: 8px; }
+          .pt-1 { padding-top: 4px; }
+          .pt-2 { padding-top: 8px; }
+          .pb-1 { padding-bottom: 4px; }
+          .pb-2 { padding-bottom: 8px; }
+          .text-lg { font-size: 18px; }
+          .text-xl { font-size: 20px; }
+          .text-2xl { font-size: 24px; }
+          .text-sm { font-size: 11px; }
+          .text-xs { font-size: 10px; }
         </style>
       </head>
       <body>
-        <div id="thermal-content" style="width: 320px; font-family: monospace;">
-          ${clonedContent.innerHTML}
+        <div id="print-content" style="width: 320px; margin: 0 auto; padding: 16px; font-family: monospace;">
+          ${thermalContent.innerHTML}
         </div>
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.focus();
+              window.print();
+              window.close();
+            }, 500);
+          };
+        </script>
       </body>
       </html>
     `;
 
     printWindow.document.write(printHTML);
     printWindow.document.close();
-    
-    // Wait for content to load, then print
-    setTimeout(() => {
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
-    }, 500);
   };
 
   const handleDownloadPDF = () => {
@@ -311,9 +270,7 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
       return;
     }
 
-    // Clone the content and inline all styles for proper PDF rendering
-    const clonedContent = thermalContent.cloneNode(true);
-
+    // Build complete HTML for print window with proper centering and styling
     const printHTML = `
       <!DOCTYPE html>
       <html>
@@ -326,7 +283,8 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
             font-family: monospace;
             width: 320px;
             margin: 0 auto;
-            padding: 16px;
+            padding: 0;
+            background: white;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
@@ -336,30 +294,64 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
           }
           @media print {
             body { 
-              margin: 0; 
-              padding: 10px;
-              width: 320px;
+              width: 100%;
+              max-width: 320px;
+              margin: 0 auto;
+              padding: 0;
             }
-            .no-print { display: none !important; }
           }
+          /* Ensure centering and proper formatting */
+          #print-content {
+            width: 320px;
+            margin: 0 auto;
+            font-family: monospace;
+          }
+          .text-center { text-align: center; }
+          .flex { display: flex; }
+          .justify-between { justify-content: space-between; }
+          .border-t { border-top: 1px solid #000; }
+          .border-b { border-bottom: 1px solid #000; }
+          .border-black { border-color: #000; }
+          .font-bold { font-weight: bold; }
+          .mb-1 { margin-bottom: 4px; }
+          .mb-2 { margin-bottom: 8px; }
+          .mb-3 { margin-bottom: 12px; }
+          .mt-1 { margin-top: 4px; }
+          .mt-2 { margin-top: 8px; }
+          .mt-3 { margin-top: 12px; }
+          .p-4 { padding: 16px; }
+          .py-1 { padding-top: 4px; padding-bottom: 4px; }
+          .py-2 { padding-top: 8px; padding-bottom: 8px; }
+          .pt-1 { padding-top: 4px; }
+          .pt-2 { padding-top: 8px; }
+          .pb-1 { padding-bottom: 4px; }
+          .pb-2 { padding-bottom: 8px; }
+          .text-lg { font-size: 18px; }
+          .text-xl { font-size: 20px; }
+          .text-2xl { font-size: 24px; }
+          .text-sm { font-size: 11px; }
+          .text-xs { font-size: 10px; }
         </style>
       </head>
       <body>
-        <div id="thermal-content" style="width: 320px; font-family: monospace;">
-          ${clonedContent.innerHTML}
+        <div id="print-content" style="width: 320px; margin: 0 auto; padding: 16px; font-family: monospace;">
+          ${thermalContent.innerHTML}
         </div>
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.focus();
+              window.print();
+              window.close();
+            }, 500);
+          };
+        </script>
       </body>
       </html>
     `;
 
     printWindow.document.write(printHTML);
     printWindow.document.close();
-    
-    setTimeout(() => {
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
-    }, 500);
   };
 
   if (!isOpen) return null;
