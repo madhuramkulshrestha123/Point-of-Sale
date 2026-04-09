@@ -31,10 +31,17 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
       });
       
       if (response.data.success) {
+        console.log('Business Info fetched:', response.data.data.user);
         setBusinessInfo(response.data.data.user);
       }
     } catch (err) {
       console.error('Error fetching business info:', err);
+      // Set default fallback
+      setBusinessInfo({
+        businessName: 'YOUR STORE NAME',
+        gstNumber: '',
+        address: {}
+      });
     }
   };
 
@@ -305,12 +312,19 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
               <h1 className="text-lg font-bold mb-1" style={{ fontSize: '16px' }}>
                 {businessInfo?.businessName || 'YOUR STORE NAME'}
               </h1>
-              {businessInfo?.gstNumber && (
+              {businessInfo?.gstNumber ? (
                 <div style={{ fontSize: '10px' }}>
                   <p>GSTIN: {businessInfo.gstNumber}</p>
-                  {businessInfo.address?.state && <p>{businessInfo.address.state}</p>}
                 </div>
-              )}
+              ) : null}
+              {businessInfo?.address ? (
+                <div style={{ fontSize: '10px' }}>
+                  {businessInfo.address.street && <p>{businessInfo.address.street}</p>}
+                  {businessInfo.address.city && <p>{businessInfo.address.city}</p>}
+                  {businessInfo.address.state && <p>{businessInfo.address.state}</p>}
+                  {businessInfo.address.zipCode && <p>{businessInfo.address.zipCode}</p>}
+                </div>
+              ) : null}
               <div className="mt-2 mb-1" style={{ fontSize: '14px' }}>
                 <strong>POS Invoice</strong>
               </div>
