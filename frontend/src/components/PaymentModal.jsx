@@ -224,142 +224,149 @@ const PaymentModal = ({ isOpen, onClose, saleId, saleData, onSuccess }) => {
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-8 relative">
+      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col relative">
         {/* Close Button */}
         <button
           onClick={onClose}
           disabled={processing}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl disabled:cursor-not-allowed"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl disabled:cursor-not-allowed z-10"
         >
           ×
         </button>
 
-        {/* Header */}
-        <div className="mb-6 text-center">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Payment</h1>
-          <p className="text-gray-600">Complete your transaction</p>
-        </div>
-
-        {/* Bill Summary */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 mb-6 border border-blue-200">
-          <h2 className="text-lg font-bold text-gray-800 mb-4">Bill Summary</h2>
-          <div className="space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Invoice Number:</span>
-              <span className="font-mono font-semibold text-gray-800">
-                {currentSaleData.invoiceNumber}
-              </span>
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-8 pb-4">
+            {/* Header */}
+            <div className="mb-6 text-center">
+              <h1 className="text-3xl font-bold text-gray-800 mb-2">Payment</h1>
+              <p className="text-gray-600">Complete your transaction</p>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Items:</span>
-              <span className="font-semibold text-gray-800">
-                {currentSaleData.items?.length || 0}
-              </span>
-            </div>
-            <div className="border-t border-gray-300 pt-3 mt-3">
-              <div className="flex justify-between items-center">
-                <span className="text-base font-bold text-gray-800">Total Amount:</span>
-                <span className="text-3xl font-extrabold text-green-600">
-                  ₹{currentSaleData.finalAmount?.toLocaleString()}
-                </span>
+
+            {/* Bill Summary */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 mb-6 border border-blue-200">
+              <h2 className="text-lg font-bold text-gray-800 mb-4">Bill Summary</h2>
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Invoice Number:</span>
+                  <span className="font-mono font-semibold text-gray-800">
+                    {currentSaleData.invoiceNumber}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Items:</span>
+                  <span className="font-semibold text-gray-800">
+                    {currentSaleData.items?.length || 0}
+                  </span>
+                </div>
+                <div className="border-t border-gray-300 pt-3 mt-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-base font-bold text-gray-800">Total Amount:</span>
+                    <span className="text-3xl font-extrabold text-green-600">
+                      ₹{currentSaleData.finalAmount?.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Payment Method Selection */}
-        <div className="mb-6">
-          <h2 className="text-lg font-bold text-gray-800 mb-4">Select Payment Method</h2>
-          <div className="grid grid-cols-3 gap-4">
-            <button
-              onClick={() => setPaymentMethod('cash')}
-              className={`p-6 rounded-lg border-2 transition-all ${
-                paymentMethod === 'cash'
-                  ? 'border-green-500 bg-green-50 shadow-md'
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}
-            >
-              <div className="text-center">
-                <div className="text-4xl mb-2">💵</div>
-                <div className="text-sm font-semibold text-gray-800">Cash</div>
+            {/* Payment Method Selection */}
+            <div className="mb-6">
+              <h2 className="text-lg font-bold text-gray-800 mb-4">Select Payment Method</h2>
+              <div className="grid grid-cols-3 gap-4">
+                <button
+                  onClick={() => setPaymentMethod('cash')}
+                  className={`p-6 rounded-lg border-2 transition-all ${
+                    paymentMethod === 'cash'
+                      ? 'border-green-500 bg-green-50 shadow-md'
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="text-4xl mb-2">💵</div>
+                    <div className="text-sm font-semibold text-gray-800">Cash</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setPaymentMethod('upi')}
+                  className={`p-6 rounded-lg border-2 transition-all ${
+                    paymentMethod === 'upi'
+                      ? 'border-purple-500 bg-purple-50 shadow-md'
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="text-4xl mb-2">📱</div>
+                    <div className="text-sm font-semibold text-gray-800">UPI</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setPaymentMethod('card')}
+                  className={`p-6 rounded-lg border-2 transition-all ${
+                    paymentMethod === 'card'
+                      ? 'border-blue-500 bg-blue-50 shadow-md'
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="text-4xl mb-2">💳</div>
+                    <div className="text-sm font-semibold text-gray-800">Card</div>
+                  </div>
+                </button>
               </div>
-            </button>
+            </div>
 
-            <button
-              onClick={() => setPaymentMethod('upi')}
-              className={`p-6 rounded-lg border-2 transition-all ${
-                paymentMethod === 'upi'
-                  ? 'border-purple-500 bg-purple-50 shadow-md'
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}
-            >
-              <div className="text-center">
-                <div className="text-4xl mb-2">📱</div>
-                <div className="text-sm font-semibold text-gray-800">UPI</div>
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">{error}</p>
               </div>
-            </button>
-
-            <button
-              onClick={() => setPaymentMethod('card')}
-              className={`p-6 rounded-lg border-2 transition-all ${
-                paymentMethod === 'card'
-                  ? 'border-blue-500 bg-blue-50 shadow-md'
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}
-            >
-              <div className="text-center">
-                <div className="text-4xl mb-2">💳</div>
-                <div className="text-sm font-semibold text-gray-800">Card</div>
-              </div>
-            </button>
-          </div>
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-600 text-sm">{error}</p>
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="space-y-3">
-          <button
-            onClick={() => handlePayment(true)}
-            disabled={processing}
-            className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-bold text-lg hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md flex items-center justify-center gap-2"
-          >
-            {processing ? 'Processing...' : (
-              <>
-                <span>🧾</span>
-                <span>Pay & Print ₹{currentSaleData.finalAmount?.toLocaleString()}</span>
-              </>
             )}
-          </button>
+          </div>
+        </div>
 
-          <button
-            onClick={() => handlePayment(false)}
-            disabled={processing}
-            className="w-full py-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-bold text-lg hover:from-green-700 hover:to-green-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-          >
-            {processing ? 'Processing...' : `Pay ₹${currentSaleData.finalAmount?.toLocaleString()}`}
-          </button>
+        {/* Fixed Action Buttons at Bottom */}
+        <div className="flex-shrink-0 bg-white border-t p-6 rounded-b-xl">
+          <div className="space-y-3">
+            <button
+              onClick={() => handlePayment(true)}
+              disabled={processing}
+              className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-bold text-lg hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md flex items-center justify-center gap-2"
+            >
+              {processing ? 'Processing...' : (
+                <>
+                  <span>🧾</span>
+                  <span>Pay & Print ₹{currentSaleData.finalAmount?.toLocaleString()}</span>
+                </>
+              )}
+            </button>
 
-          <button
-            onClick={handleSaveAsPending}
-            disabled={processing}
-            className="w-full py-3 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Save as Pending
-          </button>
+            <button
+              onClick={() => handlePayment(false)}
+              disabled={processing}
+              className="w-full py-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-bold text-lg hover:from-green-700 hover:to-green-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+            >
+              {processing ? 'Processing...' : `Pay ₹${currentSaleData.finalAmount?.toLocaleString()}`}
+            </button>
 
-          <button
-            onClick={onClose}
-            disabled={processing}
-            className="w-full py-2 text-gray-600 hover:text-gray-800 font-medium transition-all"
-          >
-            Cancel
-          </button>
+            <button
+              onClick={handleSaveAsPending}
+              disabled={processing}
+              className="w-full py-3 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Save as Pending
+            </button>
+
+            <button
+              onClick={onClose}
+              disabled={processing}
+              className="w-full py-2 text-gray-600 hover:text-gray-800 font-medium transition-all"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       </div>
     </div>

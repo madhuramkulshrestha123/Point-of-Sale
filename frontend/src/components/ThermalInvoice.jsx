@@ -193,7 +193,7 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
           }
           @page {
             size: 80mm auto;
-            margin: 5mm;
+            margin: 10mm 5mm;
           }
           @media print {
             body { 
@@ -202,12 +202,24 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
               margin: 0 auto;
               padding: 0;
             }
+            /* Prevent page breaks inside elements */
+            div, p, table {
+              page-break-inside: avoid;
+            }
+            /* Ensure header stays at top */
+            .header-section {
+              page-break-after: avoid;
+            }
           }
           /* Ensure centering and proper formatting */
           #print-content {
             width: 320px;
             margin: 0 auto;
             font-family: monospace;
+          }
+          .header-section {
+            text-align: center;
+            margin-bottom: 12px;
           }
           .text-center { text-align: center; }
           .flex { display: flex; }
@@ -290,7 +302,7 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
           }
           @page {
             size: 80mm auto;
-            margin: 5mm;
+            margin: 10mm 5mm;
           }
           @media print {
             body { 
@@ -299,12 +311,24 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
               margin: 0 auto;
               padding: 0;
             }
+            /* Prevent page breaks inside elements */
+            div, p, table {
+              page-break-inside: avoid;
+            }
+            /* Ensure header stays at top */
+            .header-section {
+              page-break-after: avoid;
+            }
           }
           /* Ensure centering and proper formatting */
           #print-content {
             width: 320px;
             margin: 0 auto;
             font-family: monospace;
+          }
+          .header-section {
+            text-align: center;
+            margin-bottom: 12px;
           }
           .text-center { text-align: center; }
           .flex { display: flex; }
@@ -482,7 +506,7 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
           <div id="thermal-bill-content" className="bg-white mx-auto" style={{ width: '320px', fontFamily: 'monospace' }}>
           <div className="p-4 text-black" style={{ fontSize: '11px', lineHeight: '1.4' }}>
             {/* Header Section */}
-            <div className="text-center mb-3">
+            <div className="text-center mb-3 header-section">
               <h1 className="text-lg font-bold mb-1" style={{ fontSize: '16px' }}>
                 {businessInfo?.businessName || businessInfo?.name || 'YOUR STORE NAME'}
               </h1>

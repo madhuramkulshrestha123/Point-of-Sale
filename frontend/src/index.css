@@ -185,3 +185,21 @@ button:active {
     animation: slideOutToRight 0.3s ease-in;
   }
 }
+
+/* Print styles to prevent header from being cut off */
+@media print {
+  @page {
+    margin-top: 10mm;
+    margin-bottom: 10mm;
+  }
+  
+  /* Prevent page breaks right after header */
+  .header-section {
+    page-break-after: avoid;
+  }
+  
+  /* Prevent page breaks inside elements */
+  div, p, table {
+    page-break-inside: avoid;
+  }
+}
