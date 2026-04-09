@@ -88,13 +88,90 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
   };
 
   const handlePrint = () => {
-    window.print();
+    // Create a hidden iframe with only the thermal bill content
+    const printWindow = window.open('', '_blank', 'width=400,height=600');
+    if (!printWindow) {
+      alert('Please allow pop-ups to print the invoice');
+      return;
+    }
+
+    // Get the thermal bill content
+    const thermalContent = document.getElementById('thermal-bill-content');
+    if (!thermalContent) return;
+
+    // Write the content to the new window
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Invoice ${invoiceData.invoiceNumber}</title>
+        <style>
+          @media print {
+            body { margin: 0; padding: 0; }
+          }
+          body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: monospace;
+          }
+        </style>
+      </head>
+      <body>
+        ${thermalContent.innerHTML}
+      </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    
+    // Wait for content to load, then print
+    setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    }, 250);
   };
 
   const handleDownloadPDF = () => {
-    // For now, use the print dialog which allows saving as PDF
-    // This is the most reliable cross-browser method
-    window.print();
+    // Use the same method as print - opens print dialog where user can select PDF
+    const printWindow = window.open('', '_blank', 'width=400,height=600');
+    if (!printWindow) {
+      alert('Please allow pop-ups to save as PDF');
+      return;
+    }
+
+    const thermalContent = document.getElementById('thermal-bill-content');
+    if (!thermalContent) return;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Invoice ${invoiceData.invoiceNumber}</title>
+        <style>
+          @media print {
+            body { margin: 0; padding: 0; }
+          }
+          body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: monospace;
+          }
+        </style>
+      </head>
+      <body>
+        ${thermalContent.innerHTML}
+      </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    
+    setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    }, 250);
   };
 
   if (!isOpen) return null;
@@ -199,8 +276,8 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
           </button>
         </div>
 
-        {/* Thermal Receipt */}
-        <div className="bg-white mx-auto" style={{ width: '320px', fontFamily: 'monospace' }}>
+        {/* Thermal Receipt - Add ID for print isolation */}
+        <div id="thermal-bill-content" className="bg-white mx-auto" style={{ width: '320px', fontFamily: 'monospace' }}>
           <div className="p-4 text-black" style={{ fontSize: '11px', lineHeight: '1.4' }}>
             {/* Header Section */}
             <div className="text-center mb-3">
