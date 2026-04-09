@@ -118,6 +118,118 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
     }
   };
 
+  const handleShareBill = async () => {
+    try {
+      const thermalContent = document.getElementById('thermal-bill-content');
+      if (!thermalContent) {
+        alert('Could not find invoice content');
+        return;
+      }
+
+      // Check if Web Share API is supported
+      if (navigator.share) {
+        // Create a canvas from the thermal content
+        const canvas = await htmlToCanvas(thermalContent);
+        
+        // Convert canvas to blob
+        canvas.toBlob(async (blob) => {
+          if (blob) {
+            const file = new File([blob], `invoice-${invoiceData.invoiceNumber}.png`, { type: 'image/png' });
+            
+            try {
+              await navigator.share({
+                title: `Invoice ${invoiceData.invoiceNumber}`,
+                text: `Bill for ${getCurrencySymbol()}${finalTotal.toFixed(2)}`,
+                files: [file]
+              });
+              console.log('Shared successfully');
+            } catch (shareError) {
+              console.log('Share canceled or failed:', shareError);
+              // Fallback to download
+              downloadCanvasAsImage(canvas);
+            }
+          }
+        }, 'image/png');
+      } else {
+        // Fallback: download as image
+        const canvas = await htmlToCanvas(thermalContent);
+        downloadCanvasAsImage(canvas);
+      }
+    } catch (error) {
+      console.error('Share error:', error);
+      alert('Failed to share bill. Downloading as image instead.');
+      // Fallback to download
+      const thermalContent = document.getElementById('thermal-bill-content');
+      if (thermalContent) {
+        const canvas = await htmlToCanvas(thermalContent);
+        downloadCanvasAsImage(canvas);
+      }
+    }
+  };
+
+  // Helper function to convert HTML to canvas
+  const htmlToCanvas = (element) => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      const scale = 2; // Higher quality
+      
+      // Calculate dimensions
+      const rect = element.getBoundingClientRect();
+      canvas.width = rect.width * scale;
+      canvas.height = rect.height * scale;
+      
+      // Create SVG with the HTML content
+      const html = element.innerHTML;
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="${rect.width}" height="${rect.height}">
+          <foreignObject width="100%" height="100%">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="width: ${rect.width}px; font-family: monospace;">
+              ${html}
+            </div>
+          </foreignObject>
+        </svg>
+      `;
+      
+      const img = new Image();
+      const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+      
+      img.onload = () => {
+        context.scale(scale, scale);
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(img, 0, 0);
+        URL.revokeObjectURL(url);
+        resolve(canvas);
+      };
+      
+      img.onerror = () => {
+        // Fallback: create a simple canvas with message
+        canvas.width = 400;
+        canvas.height = 200;
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.fillStyle = '#000000';
+        context.font = '16px monospace';
+        context.fillText('Invoice image generation failed', 20, 100);
+        URL.revokeObjectURL(url);
+        resolve(canvas);
+      };
+      
+      img.src = url;
+    });
+  };
+
+  // Helper function to download canvas as image
+  const downloadCanvasAsImage = (canvas) => {
+    const link = document.createElement('a');
+    link.download = `invoice-${invoiceData.invoiceNumber}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    alert('Invoice downloaded as image');
+  };
+
   const handlePrint = () => {
     // Create a new window for printing
     const printWindow = window.open('', '_blank', 'width=400,height=600');
@@ -133,7 +245,10 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
       return;
     }
 
-    // Build complete HTML for print window
+    // Clone the content and inline all styles for proper PDF rendering
+    const clonedContent = thermalContent.cloneNode(true);
+    
+    // Build complete HTML for print window with inline styles
     const printHTML = `
       <!DOCTYPE html>
       <html>
@@ -147,18 +262,27 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
             width: 320px;
             margin: 0 auto;
             padding: 16px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
           @page {
             size: 80mm auto;
             margin: 5mm;
           }
           @media print {
-            body { margin: 0; padding: 10px; }
+            body { 
+              margin: 0; 
+              padding: 10px;
+              width: 320px;
+            }
+            .no-print { display: none !important; }
           }
         </style>
       </head>
       <body>
-        ${thermalContent.innerHTML}
+        <div id="thermal-content" style="width: 320px; font-family: monospace;">
+          ${clonedContent.innerHTML}
+        </div>
       </body>
       </html>
     `;
@@ -171,7 +295,7 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
       printWindow.focus();
       printWindow.print();
       printWindow.close();
-    }, 300);
+    }, 500);
   };
 
   const handleDownloadPDF = () => {
@@ -187,6 +311,9 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
       return;
     }
 
+    // Clone the content and inline all styles for proper PDF rendering
+    const clonedContent = thermalContent.cloneNode(true);
+
     const printHTML = `
       <!DOCTYPE html>
       <html>
@@ -200,18 +327,27 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
             width: 320px;
             margin: 0 auto;
             padding: 16px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
           @page {
             size: 80mm auto;
             margin: 5mm;
           }
           @media print {
-            body { margin: 0; padding: 10px; }
+            body { 
+              margin: 0; 
+              padding: 10px;
+              width: 320px;
+            }
+            .no-print { display: none !important; }
           }
         </style>
       </head>
       <body>
-        ${thermalContent.innerHTML}
+        <div id="thermal-content" style="width: 320px; font-family: monospace;">
+          ${clonedContent.innerHTML}
+        </div>
       </body>
       </html>
     `;
@@ -223,7 +359,7 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
       printWindow.focus();
       printWindow.print();
       printWindow.close();
-    }, 300);
+    }, 500);
   };
 
   if (!isOpen) return null;
@@ -318,7 +454,7 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto p-4">
       <div className="relative">
-        {/* Print/Download Buttons */}
+        {/* Print/Download/Share Buttons */}
         <div className="absolute -top-12 right-0 flex gap-2 print:hidden">
           <button
             onClick={handlePrint}
@@ -331,6 +467,12 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 shadow-md flex items-center gap-2"
           >
             📄 Save as PDF
+          </button>
+          <button
+            onClick={handleShareBill}
+            className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 shadow-md flex items-center gap-2"
+          >
+            📤 Share Bill
           </button>
           <button
             onClick={onClose}

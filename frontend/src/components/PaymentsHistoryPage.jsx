@@ -292,6 +292,48 @@ const PaymentsHistoryPage = () => {
     setShowThermalInvoice(true);
   };
 
+  const handleShareThermalBill = async (bill) => {
+    try {
+      const saleData = bill.sale || bill;
+      setSelectedBill(saleData);
+      setThermalInvoiceSaleId(null);
+      setShowThermalInvoice(true);
+      
+      // After modal opens, wait a bit then trigger share
+      setTimeout(async () => {
+        const thermalContent = document.getElementById('thermal-bill-content');
+        if (!thermalContent) {
+          console.error('Thermal content not found');
+          return;
+        }
+
+        // Check if Web Share API is supported
+        if (navigator.share) {
+          // Create a simple text fallback for now
+          const shareText = `Invoice: ${saleData.invoiceNumber}\nAmount: ₹${saleData.finalAmount?.toLocaleString()}\nDate: ${new Date(saleData.createdAt).toLocaleDateString()}`;
+          
+          try {
+            await navigator.share({
+              title: `Invoice ${saleData.invoiceNumber}`,
+              text: shareText,
+            });
+            console.log('Shared successfully');
+          } catch (shareError) {
+            console.log('Share canceled or failed:', shareError);
+          }
+        } else {
+          // Fallback: copy to clipboard
+          const shareText = `Invoice: ${saleData.invoiceNumber}, Amount: ₹${saleData.finalAmount?.toLocaleString()}`;
+          navigator.clipboard.writeText(shareText);
+          alert('Bill details copied to clipboard!');
+        }
+      }, 500);
+    } catch (error) {
+      console.error('Share error:', error);
+      alert('Failed to share bill');
+    }
+  };
+
   // Validate custom date range
   useEffect(() => {
     if (dateFilter === 'custom' && customDateRange.start && customDateRange.end) {
@@ -310,19 +352,34 @@ const PaymentsHistoryPage = () => {
   };
 
   const handleShareBill = async () => {
-    if (navigator.share && selectedBill) {
-      try {
-        await navigator.share({
-          title: `Invoice ${selectedBill.invoiceNumber}`,
-          text: `Bill for ₹${selectedBill.finalAmount?.toLocaleString()}`,
-        });
-      } catch (err) {
-        console.error('Share failed:', err);
+    if (!selectedBill) return;
+    
+    try {
+      // Check if Web Share API is supported
+      if (navigator.share) {
+        const shareText = `Invoice: ${selectedBill.invoiceNumber}\nAmount: ₹${selectedBill.finalAmount?.toLocaleString()}\nDate: ${new Date(selectedBill.createdAt).toLocaleDateString()}\nCustomer: ${selectedBill.customer?.name || 'Walk-in'}`;
+        
+        try {
+          await navigator.share({
+            title: `Invoice ${selectedBill.invoiceNumber}`,
+            text: shareText,
+          });
+          console.log('Shared successfully');
+        } catch (shareError) {
+          console.log('Share canceled or failed:', shareError);
+          // Fallback to clipboard
+          navigator.clipboard.writeText(shareText);
+          alert('Bill details copied to clipboard!');
+        }
+      } else {
+        // Fallback: copy to clipboard
+        const shareText = `Invoice: ${selectedBill.invoiceNumber}, Amount: ₹${selectedBill.finalAmount?.toLocaleString()}`;
+        navigator.clipboard.writeText(shareText);
+        alert('Bill details copied to clipboard!');
       }
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(`Invoice: ${selectedBill?.invoiceNumber}, Amount: ₹${selectedBill?.finalAmount?.toLocaleString()}`);
-      alert('Bill details copied to clipboard!');
+    } catch (error) {
+      console.error('Share error:', error);
+      alert('Failed to share bill');
     }
   };
 
