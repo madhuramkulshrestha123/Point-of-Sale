@@ -813,115 +813,220 @@ const PaymentsHistoryPage = () => {
         </div>
       </div>
 
-      {/* Bill Detail Modal */}
+      {/* Bill Detail Modal - Mobile Responsive */}
       {showBillModal && selectedBill && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 md:p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] md:max-h-[90vh] overflow-hidden mx-3 md:mx-0">
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-bold">Invoice Details</h2>
-                <p className="text-blue-100 text-sm">#{selectedBill.invoiceNumber}</p>
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 md:px-6 md:py-4 flex justify-between items-center">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg md:text-2xl font-bold truncate">Invoice Details</h2>
+                <p className="text-blue-100 text-xs md:text-sm truncate">#{selectedBill.invoiceNumber}</p>
               </div>
               <button
                 onClick={() => setShowBillModal(false)}
-                className="text-white hover:bg-white/20 rounded-full p-2 transition-all text-2xl"
+                className="text-white hover:bg-white/20 rounded-full p-2 transition-all text-xl md:text-2xl ml-2 flex-shrink-0"
               >
                 ✕
               </button>
             </div>
 
-            {/* Modal Content */}
-            <div className="overflow-y-auto max-h-[calc(90vh-180px)] p-6">
-              {/* Customer Info */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            {/* Modal Content - Scrollable */}
+            <div className="overflow-y-auto max-h-[calc(95vh-160px)] md:max-h-[calc(90vh-180px)] p-4 md:p-6 space-y-4 md:space-y-6">
+              {/* Customer Info - Mobile Responsive Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                <div className="bg-gray-50 rounded-lg p-3 md:p-4 border border-gray-200">
                   <p className="text-xs text-gray-500 uppercase font-semibold mb-1">Customer</p>
-                  <p className="text-gray-800 font-semibold">{selectedBill.customer?.name || 'Walk-in Customer'}</p>
+                  <p className="text-sm md:text-base text-gray-800 font-semibold">{selectedBill.customer?.name || 'Walk-in Customer'}</p>
                   {selectedBill.customer?.phone && (
-                    <p className="text-gray-600 text-sm">📞 {selectedBill.customer.phone}</p>
+                    <p className="text-gray-600 text-xs md:text-sm mt-1">📞 {selectedBill.customer.phone}</p>
                   )}
                 </div>
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div className="bg-gray-50 rounded-lg p-3 md:p-4 border border-gray-200">
                   <p className="text-xs text-gray-500 uppercase font-semibold mb-1">Date & Time</p>
-                  <p className="text-gray-800 font-semibold">
+                  <p className="text-sm md:text-base text-gray-800 font-semibold">
                     {new Date(selectedBill.createdAt).toLocaleDateString()}
                   </p>
-                  <p className="text-gray-600 text-sm">
+                  <p className="text-gray-600 text-xs md:text-sm">
                     {new Date(selectedBill.createdAt).toLocaleTimeString()}
                   </p>
                 </div>
               </div>
 
-              {/* Items Table */}
-              <div className="mb-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-3">Items Purchased</h3>
+              {/* Items Table - Mobile Responsive */}
+              <div>
+                <h3 className="text-base md:text-lg font-bold text-gray-800 mb-3">Items Purchased</h3>
                 {!selectedBill.items || selectedBill.items.length === 0 ? (
                   <p className="text-gray-500 text-center py-4">No items found for this bill</p>
                 ) : (
-                  <table className="w-full">
-                    <thead className="bg-gray-100 border-b-2 border-gray-200">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Product</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Qty</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Price</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
+                  <div className="overflow-x-auto">
+                    {/* Desktop Table */}
+                    <table className="w-full hidden md:table">
+                      <thead className="bg-gray-100 border-b-2 border-gray-200">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Product</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Qty</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Price</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {selectedBill.items.map((item, idx) => {
+                          const price = item.sellingPrice || 0;
+                          const qty = item.quantity || 0;
+                          const total = item.subtotal || (qty * price);
+                          
+                          return (
+                            <tr key={idx} className="hover:bg-gray-50">
+                              <td className="px-4 py-3">
+                                <p className="font-medium text-gray-800">{item.productName || item.product?.name || 'N/A'}</p>
+                                {item.sku && <p className="text-xs text-gray-500">SKU: {item.sku}</p>}
+                              </td>
+                              <td className="px-4 py-3 text-right text-gray-700">{qty}</td>
+                              <td className="px-4 py-3 text-right text-gray-700">₹{price.toLocaleString()}</td>
+                              <td className="px-4 py-3 text-right font-semibold text-gray-800">₹{total.toLocaleString()}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                    
+                    {/* Mobile Cards */}
+                    <div className="md:hidden space-y-3">
                       {selectedBill.items.map((item, idx) => {
                         const price = item.sellingPrice || 0;
                         const qty = item.quantity || 0;
                         const total = item.subtotal || (qty * price);
                         
                         return (
-                          <tr key={idx} className="hover:bg-gray-50">
-                            <td className="px-4 py-3">
-                              <p className="font-medium text-gray-800">{item.productName || item.product?.name || 'N/A'}</p>
-                              {item.sku && <p className="text-xs text-gray-500">SKU: {item.sku}</p>}
-                            </td>
-                            <td className="px-4 py-3 text-right text-gray-700">{qty}</td>
-                            <td className="px-4 py-3 text-right text-gray-700">₹{price.toLocaleString()}</td>
-                            <td className="px-4 py-3 text-right font-semibold text-gray-800">₹{total.toLocaleString()}</td>
-                          </tr>
+                          <div key={idx} className="bg-white border border-gray-200 rounded-lg p-3">
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="flex-1">
+                                <p className="font-semibold text-gray-800">{item.productName || item.product?.name || 'N/A'}</p>
+                                {item.sku && <p className="text-xs text-gray-500">SKU: {item.sku}</p>}
+                              </div>
+                              <span className="font-bold text-gray-800 ml-2">₹{total.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between text-xs md:text-sm text-gray-600">
+                              <span>Qty: {qty}</span>
+                              <span>₹{price.toLocaleString()}/unit</span>
+                            </div>
+                          </div>
                         );
                       })}
-                    </tbody>
-                  </table>
+                    </div>
+                  </div>
                 )}
               </div>
 
-              {/* Payment Summary */}
-              <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 border-2 border-gray-200 mb-6">
+              {/* Tax Breakdown - Detailed */}
+              {(() => {
+                // Calculate tax breakdown by rate
+                const taxBreakdownByRate = {};
+                selectedBill.items?.forEach(item => {
+                  const rate = item.taxRate || item.product?.gstRate || 18;
+                  const itemAmount = item.subtotal || ((item.sellingPrice || 0) * (item.quantity || 0));
+                  const itemTax = (itemAmount * rate) / 100;
+                  
+                  if (!taxBreakdownByRate[rate]) {
+                    taxBreakdownByRate[rate] = { taxable: 0, tax: 0, cgst: 0, sgst: 0 };
+                  }
+                  taxBreakdownByRate[rate].taxable += itemAmount;
+                  taxBreakdownByRate[rate].tax += itemTax;
+                  taxBreakdownByRate[rate].cgst += itemTax / 2;
+                  taxBreakdownByRate[rate].sgst += itemTax / 2;
+                });
+                
+                const totalTax = Object.values(taxBreakdownByRate).reduce((sum, data) => sum + data.tax, 0);
+                const totalCGST = Object.values(taxBreakdownByRate).reduce((sum, data) => sum + data.cgst, 0);
+                const totalSGST = Object.values(taxBreakdownByRate).reduce((sum, data) => sum + data.sgst, 0);
+                const hasMultipleRates = Object.keys(taxBreakdownByRate).length > 1;
+                
+                return totalTax > 0 ? (
+                  <div className="bg-blue-50 rounded-lg p-4 md:p-5 border border-blue-200">
+                    <h3 className="text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4">GST Breakdown</h3>
+                    
+                    {/* Tax by Rate */}
+                    {hasMultipleRates && (
+                      <div className="space-y-3 mb-4">
+                        {Object.entries(taxBreakdownByRate).map(([rate, data]) => (
+                          <div key={rate} className="bg-white rounded-lg p-3 border border-blue-100">
+                            <p className="font-semibold text-gray-800 mb-2 text-sm md:text-base">GST @ {rate}%</p>
+                            <div className="grid grid-cols-3 gap-2 text-xs md:text-sm">
+                              <div>
+                                <p className="text-gray-600">Taxable</p>
+                                <p className="font-semibold text-gray-800">₹{data.taxable.toFixed(2)}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-600">CGST @ {rate/2}%</p>
+                                <p className="font-semibold text-gray-800">₹{data.cgst.toFixed(2)}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-600">SGST @ {rate/2}%</p>
+                                <p className="font-semibold text-gray-800">₹{data.sgst.toFixed(2)}</p>
+                              </div>
+                            </div>
+                            <div className="mt-2 pt-2 border-t border-gray-200">
+                              <p className="text-xs md:text-sm text-gray-600">Total GST: <span className="font-bold text-gray-800">₹{data.tax.toFixed(2)}</span></p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {/* Total GST Summary */}
+                    <div className="bg-white rounded-lg p-3 md:p-4 border border-blue-200 mt-3">
+                      <div className="grid grid-cols-3 gap-2 md:gap-3 text-xs md:text-sm">
+                        <div>
+                          <p className="text-gray-600 mb-1">Total CGST</p>
+                          <p className="font-bold text-gray-800 text-sm md:text-base">₹{totalCGST.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600 mb-1">Total SGST</p>
+                          <p className="font-bold text-gray-800 text-sm md:text-base">₹{totalSGST.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600 mb-1">Total GST</p>
+                          <p className="font-bold text-blue-600 text-sm md:text-base">₹{totalTax.toFixed(2)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : null;
+              })()}
+
+              {/* Payment Summary - Mobile Responsive */}
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 md:p-5 border-2 border-gray-200">
+                <h3 className="text-base md:text-lg font-bold text-gray-800 mb-3">Payment Summary</h3>
                 <div className="space-y-2">
-                  <div className="flex justify-between text-gray-700">
+                  <div className="flex justify-between text-gray-700 text-sm md:text-base">
                     <span>Subtotal:</span>
                     <span className="font-medium">₹{(selectedBill.totalAmount || selectedBill.subtotal || 0).toLocaleString()}</span>
                   </div>
                   {selectedBill.discount > 0 && (
-                    <div className="flex justify-between text-green-600">
+                    <div className="flex justify-between text-green-600 text-sm md:text-base">
                       <span>Discount:</span>
                       <span className="font-medium">-₹{selectedBill.discount?.toLocaleString()}</span>
                     </div>
                   )}
-                  {selectedBill.tax > 0 && (
-                    <div className="flex justify-between text-gray-700">
-                      <span>Tax:</span>
+                  {selectedBill.tax > 0 && Object.keys(taxBreakdownByRate || {}).length === 0 && (
+                    <div className="flex justify-between text-gray-700 text-sm md:text-base">
+                      <span>Tax (GST):</span>
                       <span className="font-medium">₹{selectedBill.tax?.toLocaleString()}</span>
                     </div>
                   )}
-                  <div className="border-t-2 border-gray-300 pt-2 flex justify-between text-lg font-bold text-gray-800">
+                  <div className="border-t-2 border-gray-300 pt-2 flex justify-between text-base md:text-lg font-bold text-gray-800">
                     <span>Total Amount:</span>
                     <span>₹{(selectedBill.finalAmount || 0).toLocaleString()}</span>
                   </div>
                   {selectedBill.amountPaid > 0 && (
-                    <div className="flex justify-between text-green-600 font-semibold">
+                    <div className="flex justify-between text-green-600 font-semibold text-sm md:text-base">
                       <span>Paid:</span>
                       <span>₹{selectedBill.amountPaid?.toLocaleString()}</span>
                     </div>
                   )}
                   {(selectedBill.paymentStatus === 'pending' || selectedBill.paymentStatus === 'partial') && (
-                    <div className="flex justify-between text-red-600 font-semibold">
+                    <div className="flex justify-between text-red-600 font-semibold text-sm md:text-base">
                       <span>Balance Due:</span>
                       <span>₹{((selectedBill.finalAmount || 0) - (selectedBill.amountPaid || 0)).toLocaleString()}</span>
                     </div>
@@ -929,54 +1034,54 @@ const PaymentsHistoryPage = () => {
                 </div>
               </div>
 
-              {/* Payment Method */}
-              {selectedBill.paymentMethod && (
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200 mb-6">
-                  <p className="text-sm text-gray-600 mb-1">Payment Method</p>
-                  <p className="text-lg font-semibold text-gray-800">
-                    {getPaymentMethodBadge(selectedBill.paymentMethod)}
-                  </p>
-                  {selectedBill.transactionId && (
-                    <p className="text-xs text-gray-500 mt-2">Transaction ID: {selectedBill.transactionId}</p>
-                  )}
-                </div>
-              )}
-
-              {/* Status */}
-              <div className="flex items-center gap-4">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Status</p>
-                  {getStatusBadge(selectedBill.paymentStatus || (selectedBill.finalAmount > (selectedBill.amountPaid || 0) ? 'pending' : 'completed'))}
+              {/* Payment Method & Status - Mobile Responsive */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                {selectedBill.paymentMethod && (
+                  <div className="bg-blue-50 rounded-lg p-3 md:p-4 border border-blue-200">
+                    <p className="text-xs text-gray-600 mb-1">Payment Method</p>
+                    <p className="text-sm md:text-base font-semibold text-gray-800">
+                      {getPaymentMethodBadge(selectedBill.paymentMethod)}
+                    </p>
+                    {selectedBill.transactionId && (
+                      <p className="text-xs text-gray-500 mt-2 truncate">TXN: {selectedBill.transactionId}</p>
+                    )}
+                  </div>
+                )}
+                <div className="bg-gray-50 rounded-lg p-3 md:p-4 border border-gray-200">
+                  <p className="text-xs text-gray-600 mb-1">Payment Status</p>
+                  <div className="mt-1">
+                    {getStatusBadge(selectedBill.paymentStatus || (selectedBill.finalAmount > (selectedBill.amountPaid || 0) ? 'pending' : 'completed'))}
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Modal Footer with Actions */}
-            <div className="bg-gray-50 border-t border-gray-200 px-6 py-4">
-              <div className="flex gap-3 justify-end">
+            {/* Modal Footer with Actions - Mobile Responsive */}
+            <div className="bg-gray-50 border-t border-gray-200 px-4 py-3 md:px-6 md:py-4">
+              <div className="flex flex-wrap gap-2 md:gap-3 justify-end">
                 <button
                   onClick={() => setShowBillModal(false)}
-                  className="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all font-medium"
+                  className="px-4 py-2 md:px-5 md:py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all font-medium text-sm md:text-base"
                 >
                   Close
                 </button>
                 <button
                   onClick={() => handlePrintThermalInvoice(selectedBill)}
-                  className="px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all font-medium flex items-center gap-2"
+                  className="px-4 py-2 md:px-5 md:py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all font-medium flex items-center gap-2 text-sm md:text-base"
                 >
-                  <span>🧾</span> Thermal Bill
+                  <span>🧾</span> <span className="hidden sm:inline">Thermal Bill</span>
                 </button>
                 <button
                   onClick={handleShareBill}
-                  className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium flex items-center gap-2"
+                  className="px-4 py-2 md:px-5 md:py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium flex items-center gap-2 text-sm md:text-base"
                 >
-                  <span>📤</span> Share Bill
+                  <span>📤</span> <span className="hidden sm:inline">Share Bill</span>
                 </button>
                 <button
                   onClick={handlePrintBill}
-                  className="px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all font-medium flex items-center gap-2"
+                  className="px-4 py-2 md:px-5 md:py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all font-medium flex items-center gap-2 text-sm md:text-base"
                 >
-                  <span>🖨️</span> Print Bill
+                  <span>🖨️</span> <span className="hidden sm:inline">Print Bill</span>
                 </button>
               </div>
             </div>
