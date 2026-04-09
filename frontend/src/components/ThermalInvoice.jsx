@@ -88,31 +88,41 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
   };
 
   const handlePrint = () => {
-    // Create a hidden iframe with only the thermal bill content
+    // Create a new window for printing
     const printWindow = window.open('', '_blank', 'width=400,height=600');
     if (!printWindow) {
       alert('Please allow pop-ups to print the invoice');
       return;
     }
 
-    // Get the thermal bill content
+    // Get ONLY the thermal bill content (not the modal wrapper)
     const thermalContent = document.getElementById('thermal-bill-content');
-    if (!thermalContent) return;
+    if (!thermalContent) {
+      alert('Could not find invoice content');
+      return;
+    }
 
-    // Write the content to the new window
-    printWindow.document.write(`
+    // Build complete HTML for print window
+    const printHTML = `
       <!DOCTYPE html>
       <html>
       <head>
         <title>Invoice ${invoiceData.invoiceNumber}</title>
+        <meta charset="utf-8">
         <style>
-          @media print {
-            body { margin: 0; padding: 0; }
-          }
+          * { margin: 0; padding: 0; box-sizing: border-box; }
           body { 
-            margin: 0; 
-            padding: 0; 
             font-family: monospace;
+            width: 320px;
+            margin: 0 auto;
+            padding: 16px;
+          }
+          @page {
+            size: 80mm auto;
+            margin: 5mm;
+          }
+          @media print {
+            body { margin: 0; padding: 10px; }
           }
         </style>
       </head>
@@ -120,8 +130,9 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
         ${thermalContent.innerHTML}
       </body>
       </html>
-    `);
+    `;
 
+    printWindow.document.write(printHTML);
     printWindow.document.close();
     
     // Wait for content to load, then print
@@ -129,11 +140,10 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
       printWindow.focus();
       printWindow.print();
       printWindow.close();
-    }, 250);
+    }, 300);
   };
 
   const handleDownloadPDF = () => {
-    // Use the same method as print - opens print dialog where user can select PDF
     const printWindow = window.open('', '_blank', 'width=400,height=600');
     if (!printWindow) {
       alert('Please allow pop-ups to save as PDF');
@@ -141,21 +151,31 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
     }
 
     const thermalContent = document.getElementById('thermal-bill-content');
-    if (!thermalContent) return;
+    if (!thermalContent) {
+      alert('Could not find invoice content');
+      return;
+    }
 
-    printWindow.document.write(`
+    const printHTML = `
       <!DOCTYPE html>
       <html>
       <head>
         <title>Invoice ${invoiceData.invoiceNumber}</title>
+        <meta charset="utf-8">
         <style>
-          @media print {
-            body { margin: 0; padding: 0; }
-          }
+          * { margin: 0; padding: 0; box-sizing: border-box; }
           body { 
-            margin: 0; 
-            padding: 0; 
             font-family: monospace;
+            width: 320px;
+            margin: 0 auto;
+            padding: 16px;
+          }
+          @page {
+            size: 80mm auto;
+            margin: 5mm;
+          }
+          @media print {
+            body { margin: 0; padding: 10px; }
           }
         </style>
       </head>
@@ -163,15 +183,16 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
         ${thermalContent.innerHTML}
       </body>
       </html>
-    `);
+    `;
 
+    printWindow.document.write(printHTML);
     printWindow.document.close();
     
     setTimeout(() => {
       printWindow.focus();
       printWindow.print();
       printWindow.close();
-    }, 250);
+    }, 300);
   };
 
   if (!isOpen) return null;
@@ -454,42 +475,6 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
           </div>
         </div>
       </div>
-
-      {/* Print Styles */}
-      <style>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          .fixed,
-          .fixed * {
-            visibility: visible;
-          }
-          .fixed {
-            position: absolute;
-            left: 0;
-            top: 0;
-            background: white !important;
-            padding: 10px !important;
-          }
-          .print\\:hidden {
-            display: none !important;
-          }
-          @page {
-            size: 80mm auto;
-            margin: 5mm;
-          }
-          body {
-            margin: 0;
-            padding: 0;
-            background: white;
-          }
-          /* Ensure the receipt container has no shadow */
-          .bg-white {
-            box-shadow: none !important;
-          }
-        }
-      `}</style>
     </div>
   );
 };
