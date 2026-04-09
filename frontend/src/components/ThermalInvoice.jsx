@@ -190,6 +190,7 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
             background: white;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
+            overflow: visible;
           }
           @page {
             size: 80mm auto;
@@ -201,14 +202,19 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
               max-width: 320px;
               margin: 0 auto;
               padding: 0;
+              overflow: visible;
             }
             /* Prevent page breaks inside elements */
-            div, p, table {
+            div, p, table, tr {
               page-break-inside: avoid;
             }
             /* Ensure header stays at top */
             .header-section {
               page-break-after: avoid;
+            }
+            /* Allow content to flow to next page naturally */
+            .items-section {
+              page-break-before: auto;
             }
           }
           /* Ensure centering and proper formatting */
@@ -216,10 +222,12 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
             width: 320px;
             margin: 0 auto;
             font-family: monospace;
+            overflow: visible;
           }
           .header-section {
             text-align: center;
             margin-bottom: 12px;
+            page-break-after: avoid;
           }
           .text-center { text-align: center; }
           .flex { display: flex; }
@@ -249,7 +257,7 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
         </style>
       </head>
       <body>
-        <div id="print-content" style="width: 320px; margin: 0 auto; padding: 16px; font-family: monospace;">
+        <div id="print-content" style="width: 320px; margin: 0 auto; padding: 16px; font-family: monospace; overflow: visible;">
           ${thermalContent.innerHTML}
         </div>
         <script>
@@ -299,6 +307,7 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
             background: white;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
+            overflow: visible;
           }
           @page {
             size: 80mm auto;
@@ -310,14 +319,19 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
               max-width: 320px;
               margin: 0 auto;
               padding: 0;
+              overflow: visible;
             }
             /* Prevent page breaks inside elements */
-            div, p, table {
+            div, p, table, tr {
               page-break-inside: avoid;
             }
             /* Ensure header stays at top */
             .header-section {
               page-break-after: avoid;
+            }
+            /* Allow content to flow to next page naturally */
+            .items-section {
+              page-break-before: auto;
             }
           }
           /* Ensure centering and proper formatting */
@@ -325,10 +339,12 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
             width: 320px;
             margin: 0 auto;
             font-family: monospace;
+            overflow: visible;
           }
           .header-section {
             text-align: center;
             margin-bottom: 12px;
+            page-break-after: avoid;
           }
           .text-center { text-align: center; }
           .flex { display: flex; }
@@ -358,7 +374,7 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
         </style>
       </head>
       <body>
-        <div id="print-content" style="width: 320px; margin: 0 auto; padding: 16px; font-family: monospace;">
+        <div id="print-content" style="width: 320px; margin: 0 auto; padding: 16px; font-family: monospace; overflow: visible;">
           ${thermalContent.innerHTML}
         </div>
         <script>
@@ -471,7 +487,7 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="relative w-full max-w-md max-h-[90vh] flex flex-col">
         {/* Print/Download/Share Buttons - Fixed at top */}
-        <div className="flex-shrink-0 bg-white rounded-t-lg p-3 border-b sticky top-0 z-10">
+        <div className="flex-shrink-0 bg-white rounded-t-lg p-3 border-b sticky top-0 z-10 print:hidden">
           <div className="flex gap-2 flex-wrap justify-center">
             <button
               onClick={handlePrint}
@@ -583,7 +599,7 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
             </div>
 
             {/* Items */}
-            <div className="mb-3" style={{ fontSize: '10px' }}>
+            <div className="mb-3 items-section" style={{ fontSize: '10px' }}>
               {invoiceData.items?.map((item, index) => {
                 const productName = item.product?.name || item.productName || 'Product';
                 const hsnCode = item.product?.hsnCode || item.hsnCode || 'N/A';
