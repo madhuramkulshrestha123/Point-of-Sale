@@ -14,14 +14,20 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
       if (saleData) {
         console.log('ThermalInvoice: Using saleData passed directly');
         setInvoiceData(saleData);
-        if (onReady) {
-          setTimeout(() => onReady(), 100);
-        }
+        // Don't call onReady yet - wait for businessInfo to load
       } else if (saleId) {
         fetchSaleDetails(saleId);
       }
     }
   }, [isOpen, saleId, saleData]);
+
+  // Call onReady when both invoiceData and businessInfo are loaded
+  useEffect(() => {
+    if (invoiceData && businessInfo && onReady) {
+      console.log('ThermalInvoice: Both invoice and business info loaded, calling onReady');
+      setTimeout(() => onReady(), 100);
+    }
+  }, [invoiceData, businessInfo, onReady]);
 
   const fetchBusinessInfo = async () => {
     try {
@@ -34,9 +40,21 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
       console.log('Full API response:', response.data);
       
       if (response.data.success) {
+        // Extract user data from the nested structure: response.data.data.user
         const userData = response.data.data.user || response.data.data;
         console.log('User data extracted:', userData);
-        setBusinessInfo(userData);
+        
+        // Ensure address is properly structured
+        const businessData = {
+          businessName: userData.businessName || 'YOUR STORE NAME',
+          name: userData.ownerName || '',
+          gstNumber: userData.gstNumber || userData.gst || '',
+          currency: userData.currency || 'INR',
+          address: userData.address || {}
+        };
+        
+        console.log('Setting business info:', businessData);
+        setBusinessInfo(businessData);
       }
     } catch (err) {
       console.error('Error fetching business info:', err);
@@ -45,6 +63,7 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
       setBusinessInfo({
         businessName: 'YOUR STORE NAME',
         gstNumber: '',
+        currency: 'INR',
         address: {}
       });
     }
@@ -220,6 +239,18 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
     );
   }
 
+  // Show loading if business info is not yet loaded
+  if (!businessInfo) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+          <p className="text-gray-700">Loading business info...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!invoiceData) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -329,9 +360,12 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
                   ) : (
                     <>
                       {businessInfo.address.street && <p>{businessInfo.address.street}</p>}
-                      {businessInfo.address.city && <p>{businessInfo.address.city}</p>}
-                      {businessInfo.address.state && <p>{businessInfo.address.state}</p>}
-                      {businessInfo.address.zipCode && <p>{businessInfo.address.zipCode}</p>}
+                      {(businessInfo.address.city || businessInfo.address.state) && (
+                        <p>
+                          {businessInfo.address.city}{businessInfo.address.city && businessInfo.address.state ? ', ' : ''}{businessInfo.address.state}
+                        </p>
+                      )}
+                      {businessInfo.address.zipCode || businessInfo.address.zip && <p>{businessInfo.address.zipCode || businessInfo.address.zip}</p>}
                     </>
                   )}
                 </div>
@@ -359,6 +393,12 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
                 <span>Buyer Name:</span>
                 <span>{invoiceData.customer?.name || 'Walk-in Customer'}</span>
               </div>
+              {invoiceData.paymentMethod && (
+                <div className="flex justify-between">
+                  <span>Payment:</span>
+                  <span className="font-bold">{(invoiceData.paymentMethod).toUpperCase()}</span>
+                </div>
+              )}
             </div>
 
             <div className="border-t border-b border-black py-1 mb-3" style={{ fontSize: '9px' }}>
@@ -450,32 +490,32 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
             </div>
 
             {/* Tax Breakdown */}
-            <div className="border-t border-b border-black py-2 mb-3" style={{ fontSize: '9px' }}>
-              <p className="font-bold mb-1">Tax Breakdown</p>
-              {Object.entries(taxBreakdownByRate).map(([rate, data]) => (
-                <div key={rate}>
-                  <div className="flex justify-between mb-1">
-                    <span>CGST @ {parseFloat(rate)/2}%:</span>
-                    <span>{currencySymbol}{(data.tax / 2).toFixed(2)}</span>
+            {Object.keys(taxBreakdownByRate).length > 0 && (
+              <div className="border-t border-b border-black py-2 mb-3" style={{ fontSize: '9px' }}>
+                <p className="font-bold mb-1">Tax Breakdown</p>
+                {Object.entries(taxBreakdownByRate).map(([rate, data]) => (
+                  <div key={rate}>
+                    <div className="flex justify-between mb-1">
+                      <span>CGST @ {parseFloat(rate)/2}%:</span>
+                      <span>{currencySymbol}{(data.tax / 2).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between mb-1">
+                      <span>SGST @ {parseFloat(rate)/2}%:</span>
+                      <span>{currencySymbol}{(data.tax / 2).toFixed(2)}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between mb-1">
-                    <span>SGST @ {parseFloat(rate)/2}%:</span>
-                    <span>{currencySymbol}{(data.tax / 2).toFixed(2)}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             {/* Payment Section */}
             <div className="mb-3" style={{ fontSize: '10px' }}>
-              <div className="flex justify-between mb-1">
-                <span>Payment Method:</span>
-                <span className="font-bold">{(invoiceData.paymentMethod || 'N/A').toUpperCase()}</span>
-              </div>
-              <div className="flex justify-between mb-1">
-                <span>Payment Status:</span>
-                <span>{(invoiceData.paymentStatus || 'N/A').toUpperCase()}</span>
-              </div>
+              {invoiceData.paymentStatus && (
+                <div className="flex justify-between mb-1">
+                  <span>Payment Status:</span>
+                  <span className="font-bold">{(invoiceData.paymentStatus).toUpperCase()}</span>
+                </div>
+              )}
             </div>
 
             {/* Final Total */}
