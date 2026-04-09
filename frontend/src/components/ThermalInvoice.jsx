@@ -26,16 +26,21 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
   const fetchBusinessInfo = async () => {
     try {
       const token = localStorage.getItem('token');
+      console.log('Fetching business info from:', `${API_URL}/auth/me`);
       const response = await axios.get(`${API_URL}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       
+      console.log('Full API response:', response.data);
+      
       if (response.data.success) {
-        console.log('Business Info fetched:', response.data.data.user);
-        setBusinessInfo(response.data.data.user);
+        const userData = response.data.data.user || response.data.data;
+        console.log('User data extracted:', userData);
+        setBusinessInfo(userData);
       }
     } catch (err) {
       console.error('Error fetching business info:', err);
+      console.error('Error details:', err.response?.data);
       // Set default fallback
       setBusinessInfo({
         businessName: 'YOUR STORE NAME',
@@ -310,21 +315,27 @@ const ThermalInvoice = ({ isOpen, onClose, saleId, saleData, onReady }) => {
             {/* Header Section */}
             <div className="text-center mb-3">
               <h1 className="text-lg font-bold mb-1" style={{ fontSize: '16px' }}>
-                {businessInfo?.businessName || 'YOUR STORE NAME'}
+                {businessInfo?.businessName || businessInfo?.name || 'YOUR STORE NAME'}
               </h1>
-              {businessInfo?.gstNumber ? (
+              {(businessInfo?.gstNumber || businessInfo?.gst) && (
                 <div style={{ fontSize: '10px' }}>
-                  <p>GSTIN: {businessInfo.gstNumber}</p>
+                  <p>GSTIN: {businessInfo.gstNumber || businessInfo.gst}</p>
                 </div>
-              ) : null}
-              {businessInfo?.address ? (
+              )}
+              {businessInfo?.address && (
                 <div style={{ fontSize: '10px' }}>
-                  {businessInfo.address.street && <p>{businessInfo.address.street}</p>}
-                  {businessInfo.address.city && <p>{businessInfo.address.city}</p>}
-                  {businessInfo.address.state && <p>{businessInfo.address.state}</p>}
-                  {businessInfo.address.zipCode && <p>{businessInfo.address.zipCode}</p>}
+                  {typeof businessInfo.address === 'string' ? (
+                    <p>{businessInfo.address}</p>
+                  ) : (
+                    <>
+                      {businessInfo.address.street && <p>{businessInfo.address.street}</p>}
+                      {businessInfo.address.city && <p>{businessInfo.address.city}</p>}
+                      {businessInfo.address.state && <p>{businessInfo.address.state}</p>}
+                      {businessInfo.address.zipCode && <p>{businessInfo.address.zipCode}</p>}
+                    </>
+                  )}
                 </div>
-              ) : null}
+              )}
               <div className="mt-2 mb-1" style={{ fontSize: '14px' }}>
                 <strong>POS Invoice</strong>
               </div>
