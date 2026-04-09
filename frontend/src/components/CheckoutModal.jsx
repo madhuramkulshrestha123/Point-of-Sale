@@ -38,6 +38,13 @@ const CheckoutModal = ({ isOpen, onClose }) => {
       const token = localStorage.getItem('token');
       const user = JSON.parse(localStorage.getItem('user'));
       
+      // Validate cashier ID
+      const cashierId = user?._id || user?.id;
+      if (!cashierId) {
+        setError('User information not found. Please login again.');
+        return;
+      }
+      
       // If customer is registered, create/update customer record
       let customerId = customer.type === 'registered' ? customer.id : null;
       
@@ -65,19 +72,38 @@ const CheckoutModal = ({ isOpen, onClose }) => {
         }
       }
       
-      // Prepare sale data (no store required)
+      // Validate cart items have all required fields
+      const validatedItems = cart.map(item => {
+        // Ensure price is a valid number
+        const sellingPrice = typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0;
+        const costPrice = typeof item.costPrice === 'number' ? item.costPrice : parseFloat(item.costPrice) || 0;
+        const quantity = typeof item.quantity === 'number' ? item.quantity : parseInt(item.quantity) || 1;
+        const productId = item.id || item._id;
+        
+        if (!productId) {
+          console.error('Item missing product ID:', item);
+        }
+        
+        return {
+          product: productId, // This should be the product _id
+          quantity: quantity,
+          sellingPrice: sellingPrice,
+          costPrice: costPrice,
+          discount: 0,
+          subtotal: sellingPrice * quantity,
+          taxRate: item.taxRate || 18,
+        };
+      });
+      
+      // Log for debugging
+      console.log('Validated items:', validatedItems);
+      console.log('Cart items:', cart.map(i => ({ id: i.id, price: i.price, costPrice: i.costPrice })));
+      
+      // Prepare sale data
       const saleData = {
         customer: customerId,
-        cashier: user?._id || user?.id,
-        items: cart.map(item => ({
-          product: item.id,
-          quantity: item.quantity,
-          sellingPrice: item.price,
-          costPrice: item.costPrice || 0,
-          discount: 0,
-          subtotal: item.price * item.quantity,
-          taxRate: item.taxRate || 18, // Include tax rate
-        })),
+        cashier: cashierId,
+        items: validatedItems,
         totalAmount: subtotal,
         discount: discountAmount,
         tax: taxAmount,
