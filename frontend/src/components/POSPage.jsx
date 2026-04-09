@@ -10,6 +10,7 @@ import CartPanel from './CartPanel';
 import CartDrawer from './CartDrawer';
 import FavoritesBar from './FavoritesBar';
 import CheckoutModal from './CheckoutModal';
+import ProfileModal from './ProfileModal';
 import InventoryPage from '../pages/InventoryPage';
 import AnalyticsPage from '../pages/AnalyticsPage';
 import PaymentsHistoryPage from './PaymentsHistoryPage';
@@ -36,6 +37,7 @@ const POSPage = ({ user, onLogout }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showCheckout, setShowCheckout] = useState(false);
   const [showCartDrawer, setShowCartDrawer] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState([]);
@@ -277,96 +279,79 @@ const POSPage = ({ user, onLogout }) => {
           
           {/* CENTER PANEL - Product Grid */}
           <div className="flex-1 flex flex-col min-w-0 pb-16 md:pb-0">
-            {/* Search Bar - Mobile Responsive */}
-            <div className="bg-white px-2 py-2 border-b border-gray-200 shadow-sm md:px-4 md:py-3">
-              {/* Business Name (Mobile Only) */}
-              <div className="md:hidden mb-2 text-center">
-                <h1 className="text-[clamp(1.25rem,4vw,2rem)] font-bold text-gray-800" style={{ fontFamily: '"Saira Stencil", cursive, sans-serif' }}>
-                  {user?.businessName || 'Saira Stencil'}
+            {/* Mobile Header Section */}
+            <div className="md:hidden">
+              {/* Top Header - Business Name */}
+              <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3 text-center shadow-md">
+                <h1 className="text-xl font-bold text-white" style={{ fontFamily: '"Saira Stencil", cursive, sans-serif' }}>
+                  {user?.businessName || 'N.R AUTO PARTS'}
                 </h1>
               </div>
               
-              {/* Cart Icon & Search (Mobile) */}
-              <div className="flex items-center gap-2 mb-2 md:hidden">
-                <div className="relative flex-1" ref={searchContainerRef}>
-                  <input
-                    ref={searchInputRef}
-                    id="product-search-mobile"
-                    type="text"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    onFocus={handleSearchFocus}
-                    onBlur={() => setTimeout(() => setShowSearchHistory(false), 200)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && searchQuery.trim()) {
-                        saveSearchToHistory(searchQuery.trim());
-                        setShowSearchHistory(false);
-                      }
-                    }}
-                    placeholder="🔍 Search products..."
-                    className="w-full h-11 px-4 pl-11 text-sm border border-gray-300 rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white shadow-sm"
-                    autoComplete="off"
-                  />
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-base">
-                    🔍
-                  </span>
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-                <button
-                  onClick={() => setShowCartDrawer(true)}
-                  className="relative flex-shrink-0 p-3 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors shadow-md"
-                >
-                  🛒
-                  {getSubtotal() > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                      {Math.ceil(getSubtotal() / 100)}
-                    </span>
-                  )}
-                </button>
-              </div>
-              
-              {/* Desktop Search */}
-              <div className="hidden md:block" ref={searchContainerRef}>
-                <input
-                  ref={searchInputRef}
-                  id="product-search"
-                  type="text"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  onFocus={handleSearchFocus}
-                  onBlur={() => setTimeout(() => setShowSearchHistory(false), 200)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && searchQuery.trim()) {
-                      saveSearchToHistory(searchQuery.trim());
-                      setShowSearchHistory(false);
-                    }
-                  }}
-                  placeholder="🔍  Search products by name, brand, SKU, barcode, or vehicle compatibility... (Ctrl+K)"
-                  className="w-full h-12 px-5 pl-12 text-sm border border-gray-300 rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white shadow-sm hover:shadow-md"
-                  autoComplete="off"
-                />
-                <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg">
-                  🔍
-                </span>
-                {searchQuery && (
+              {/* Second Row - Profile Button, Search, Cart */}
+              <div className="bg-white px-3 py-2 border-b border-gray-200 shadow-sm">
+                <div className="flex items-center gap-2">
+                  {/* Profile Button */}
                   <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-full transition-all"
+                    onClick={() => setShowProfileModal(true)}
+                    className="flex-shrink-0 w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center hover:bg-indigo-700 transition-colors shadow-md"
+                    title="Business Profile"
                   >
-                    ✕
+                    <span className="text-lg font-bold">
+                      {user?.businessName?.charAt(0).toUpperCase() || 'N'}
+                    </span>
                   </button>
-                )}
+                  
+                  {/* Search Bar */}
+                  <div className="flex-1 relative" ref={searchContainerRef}>
+                    <input
+                      ref={searchInputRef}
+                      id="product-search-mobile"
+                      type="text"
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                      onFocus={handleSearchFocus}
+                      onBlur={() => setTimeout(() => setShowSearchHistory(false), 200)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && searchQuery.trim()) {
+                          saveSearchToHistory(searchQuery.trim());
+                          setShowSearchHistory(false);
+                        }
+                      }}
+                      placeholder="🔍 Search products..."
+                      className="w-full h-10 px-4 pl-10 text-sm border border-gray-300 rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white shadow-sm"
+                      autoComplete="off"
+                    />
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-base">
+                      🔍
+                    </span>
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Cart Button */}
+                  <button
+                    onClick={() => setShowCartDrawer(true)}
+                    className="flex-shrink-0 w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center hover:bg-green-700 transition-colors shadow-md relative"
+                  >
+                    <span className="text-lg">🛒</span>
+                    {getSubtotal() > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                        {Math.ceil(getSubtotal() / 100)}
+                      </span>
+                    )}
+                  </button>
+                </div>
                 
                 {/* Search History Dropdown */}
                 {showSearchHistory && searchHistory.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                  <div className="absolute top-full left-0 right-0 mt-2 mx-3 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                     <div className="p-2 border-b border-gray-100 flex justify-between items-center">
                       <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Recent Searches</span>
                       <button
@@ -399,6 +384,74 @@ const POSPage = ({ user, onLogout }) => {
                   </div>
                 )}
               </div>
+            </div>
+            
+            {/* Desktop Search Bar */}
+            <div className="hidden md:block bg-white px-4 py-3 border-b border-gray-200 shadow-sm" ref={searchContainerRef}>
+              <input
+                ref={searchInputRef}
+                id="product-search"
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onFocus={handleSearchFocus}
+                onBlur={() => setTimeout(() => setShowSearchHistory(false), 200)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchQuery.trim()) {
+                    saveSearchToHistory(searchQuery.trim());
+                    setShowSearchHistory(false);
+                  }
+                }}
+                placeholder="🔍  Search products by name, brand, SKU, barcode, or vehicle compatibility... (Ctrl+K)"
+                className="w-full h-12 px-5 pl-12 text-sm border border-gray-300 rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white shadow-sm hover:shadow-md"
+                autoComplete="off"
+              />
+              <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg">
+                🔍
+              </span>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-full transition-all"
+                >
+                  ✕
+                </button>
+              )}
+              
+              {/* Search History Dropdown */}
+              {showSearchHistory && searchHistory.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                  <div className="p-2 border-b border-gray-100 flex justify-between items-center">
+                    <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Recent Searches</span>
+                    <button
+                      onClick={clearSearchHistory}
+                      className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded transition-colors"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                  <ul className="py-1">
+                    {searchHistory.map((query, index) => (
+                      <li key={index}>
+                        <button
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            handleSearchHistoryClick(query);
+                          }}
+                          className="w-full text-left px-4 py-2.5 hover:bg-gray-50 flex items-center gap-3 transition-colors"
+                        >
+                          <span className="text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </span>
+                          <span className="text-sm text-gray-700 truncate">{query}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
             
             {/* Favorites Bar (Desktop Only) */}
@@ -454,6 +507,16 @@ const POSPage = ({ user, onLogout }) => {
             isOpen={showCartDrawer}
             onClose={() => setShowCartDrawer(false)}
             onCheckout={handleCheckout}
+          />
+          
+          {/* Profile Modal */}
+          <ProfileModal
+            user={user}
+            onClose={() => setShowProfileModal(false)}
+            onUpdate={(updatedUser) => {
+              // Update localStorage with new user data
+              localStorage.setItem('user', JSON.stringify(updatedUser));
+            }}
           />
         </>
       ) : activeMenu === 'inventory' ? (

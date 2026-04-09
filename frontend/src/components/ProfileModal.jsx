@@ -196,6 +196,21 @@ const ProfileModal = ({ user, onClose, onUpdate }) => {
                       <label className="text-sm text-gray-600">Phone</label>
                       <p className="font-medium text-gray-900">{user.phone}</p>
                     </div>
+                    <div>
+                      <label className="text-sm text-gray-600">GST Number</label>
+                      <p className="font-medium text-gray-900">{user.gstNumber || 'Not Set'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-600">Currency</label>
+                      <p className="font-medium text-gray-900">
+                        {user.currency === 'INR' && '₹ INR - Indian Rupee'}
+                        {user.currency === 'USD' && '$ USD - US Dollar'}
+                        {user.currency === 'EUR' && '€ EUR - Euro'}
+                        {user.currency === 'GBP' && '£ GBP - British Pound'}
+                        {user.currency === 'AED' && 'د.إ AED - UAE Dirham'}
+                        {!user.currency && '₹ INR - Indian Rupee'}
+                      </p>
+                    </div>
                   </div>
 
                   {user.address && (
