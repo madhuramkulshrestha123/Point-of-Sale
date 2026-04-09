@@ -65,23 +65,32 @@ exports.createSale = async (req, res) => {
       }
 
       // Get inventory for this product (no store filter)
-      const inventory = await Inventory.findOne({
+      let inventory = await Inventory.findOne({
         product: item.product,
       });
 
       console.log(`Inventory for ${product.name}:`, inventory ? `Found - Qty: ${inventory.totalQuantity}` : 'Not found');
       
-      // If no inventory found without store, try to find any inventory for this product
+      // If no inventory found, create one using product's stockQuantity
       if (!inventory) {
-        const anyInventory = await Inventory.findOne({ product: item.product }).limit(1);
-        console.log(`Fallback inventory search:`, anyInventory ? `Found - Qty: ${anyInventory.totalQuantity}` : 'Still not found');
-      }
-
-      if (!inventory) {
-        return res.status(400).json({
-          success: false,
-          message: `No inventory record found for ${product.name}. Please add stock first.`,
+        console.log(`Creating inventory record for ${product.name} with stock: ${product.stockQuantity}`);
+        
+        // If product has no stock, return error
+        if (!product.stockQuantity || product.stockQuantity <= 0) {
+          return res.status(400).json({
+            success: false,
+            message: `Out of stock for ${product.name}. Available: 0`,
+          });
+        }
+        
+        // Create inventory record from product stock
+        inventory = await Inventory.create({
+          product: item.product,
+          totalQuantity: product.stockQuantity,
+          minStock: product.reorderLevel || 10,
         });
+        
+        console.log(`Created inventory for ${product.name}: ${product.stockQuantity}`);
       }
 
       if (inventory.totalQuantity < item.quantity) {
