@@ -919,9 +919,8 @@ const PaymentsHistoryPage = () => {
                 )}
               </div>
 
-              {/* Tax Breakdown - Detailed */}
+              {/* Tax & Payment Summary with shared tax calculation */}
               {(() => {
-                // Calculate tax breakdown by rate
                 const taxBreakdownByRate = {};
                 selectedBill.items?.forEach(item => {
                   const rate = item.taxRate || item.product?.gstRate || 18;
@@ -942,97 +941,103 @@ const PaymentsHistoryPage = () => {
                 const totalSGST = Object.values(taxBreakdownByRate).reduce((sum, data) => sum + data.sgst, 0);
                 const hasMultipleRates = Object.keys(taxBreakdownByRate).length > 1;
                 
-                return totalTax > 0 ? (
-                  <div className="bg-blue-50 rounded-lg p-4 md:p-5 border border-blue-200">
-                    <h3 className="text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4">GST Breakdown</h3>
-                    
-                    {/* Tax by Rate */}
-                    {hasMultipleRates && (
-                      <div className="space-y-3 mb-4">
-                        {Object.entries(taxBreakdownByRate).map(([rate, data]) => (
-                          <div key={rate} className="bg-white rounded-lg p-3 border border-blue-100">
-                            <p className="font-semibold text-gray-800 mb-2 text-sm md:text-base">GST @ {rate}%</p>
-                            <div className="grid grid-cols-3 gap-2 text-xs md:text-sm">
-                              <div>
-                                <p className="text-gray-600">Taxable</p>
-                                <p className="font-semibold text-gray-800">₹{data.taxable.toFixed(2)}</p>
+                // Return the entire JSX that needs the tax data
+                return (
+                  <>
+                    {/* Tax Breakdown - Detailed */}
+                    {totalTax > 0 && (
+                      <div className="bg-blue-50 rounded-lg p-4 md:p-5 border border-blue-200">
+                        <h3 className="text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4">GST Breakdown</h3>
+                        
+                        {/* Tax by Rate */}
+                        {hasMultipleRates && (
+                          <div className="space-y-3 mb-4">
+                            {Object.entries(taxBreakdownByRate).map(([rate, data]) => (
+                              <div key={rate} className="bg-white rounded-lg p-3 border border-blue-100">
+                                <p className="font-semibold text-gray-800 mb-2 text-sm md:text-base">GST @ {rate}%</p>
+                                <div className="grid grid-cols-3 gap-2 text-xs md:text-sm">
+                                  <div>
+                                    <p className="text-gray-600">Taxable</p>
+                                    <p className="font-semibold text-gray-800">₹{data.taxable.toFixed(2)}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-gray-600">CGST @ {rate/2}%</p>
+                                    <p className="font-semibold text-gray-800">₹{data.cgst.toFixed(2)}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-gray-600">SGST @ {rate/2}%</p>
+                                    <p className="font-semibold text-gray-800">₹{data.sgst.toFixed(2)}</p>
+                                  </div>
+                                </div>
+                                <div className="mt-2 pt-2 border-t border-gray-200">
+                                  <p className="text-xs md:text-sm text-gray-600">Total GST: <span className="font-bold text-gray-800">₹{data.tax.toFixed(2)}</span></p>
+                                </div>
                               </div>
-                              <div>
-                                <p className="text-gray-600">CGST @ {rate/2}%</p>
-                                <p className="font-semibold text-gray-800">₹{data.cgst.toFixed(2)}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-600">SGST @ {rate/2}%</p>
-                                <p className="font-semibold text-gray-800">₹{data.sgst.toFixed(2)}</p>
-                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Total GST Summary */}
+                        <div className="bg-white rounded-lg p-3 md:p-4 border border-blue-200 mt-3">
+                          <div className="grid grid-cols-3 gap-2 md:gap-3 text-xs md:text-sm">
+                            <div>
+                              <p className="text-gray-600 mb-1">Total CGST</p>
+                              <p className="font-bold text-gray-800 text-sm md:text-base">₹{totalCGST.toFixed(2)}</p>
                             </div>
-                            <div className="mt-2 pt-2 border-t border-gray-200">
-                              <p className="text-xs md:text-sm text-gray-600">Total GST: <span className="font-bold text-gray-800">₹{data.tax.toFixed(2)}</span></p>
+                            <div>
+                              <p className="text-gray-600 mb-1">Total SGST</p>
+                              <p className="font-bold text-gray-800 text-sm md:text-base">₹{totalSGST.toFixed(2)}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-600 mb-1">Total GST</p>
+                              <p className="font-bold text-blue-600 text-sm md:text-base">₹{totalTax.toFixed(2)}</p>
                             </div>
                           </div>
-                        ))}
+                        </div>
                       </div>
                     )}
-                    
-                    {/* Total GST Summary */}
-                    <div className="bg-white rounded-lg p-3 md:p-4 border border-blue-200 mt-3">
-                      <div className="grid grid-cols-3 gap-2 md:gap-3 text-xs md:text-sm">
-                        <div>
-                          <p className="text-gray-600 mb-1">Total CGST</p>
-                          <p className="font-bold text-gray-800 text-sm md:text-base">₹{totalCGST.toFixed(2)}</p>
+
+                    {/* Payment Summary - Mobile Responsive */}
+                    <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 md:p-5 border-2 border-gray-200">
+                      <h3 className="text-base md:text-lg font-bold text-gray-800 mb-3">Payment Summary</h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-gray-700 text-sm md:text-base">
+                          <span>Subtotal:</span>
+                          <span className="font-medium">₹{(selectedBill.totalAmount || selectedBill.subtotal || 0).toLocaleString()}</span>
                         </div>
-                        <div>
-                          <p className="text-gray-600 mb-1">Total SGST</p>
-                          <p className="font-bold text-gray-800 text-sm md:text-base">₹{totalSGST.toFixed(2)}</p>
+                        {selectedBill.discount > 0 && (
+                          <div className="flex justify-between text-green-600 text-sm md:text-base">
+                            <span>Discount:</span>
+                            <span className="font-medium">-₹{selectedBill.discount?.toLocaleString()}</span>
+                          </div>
+                        )}
+                        {selectedBill.tax > 0 && !hasMultipleRates && (
+                          <div className="flex justify-between text-gray-700 text-sm md:text-base">
+                            <span>Tax (GST):</span>
+                            <span className="font-medium">₹{selectedBill.tax?.toLocaleString()}</span>
+                          </div>
+                        )}
+                        <div className="border-t-2 border-gray-300 pt-2 flex justify-between text-base md:text-lg font-bold text-gray-800">
+                          <span>Total Amount:</span>
+                          <span>₹{(selectedBill.finalAmount || 0).toLocaleString()}</span>
                         </div>
-                        <div>
-                          <p className="text-gray-600 mb-1">Total GST</p>
-                          <p className="font-bold text-blue-600 text-sm md:text-base">₹{totalTax.toFixed(2)}</p>
-                        </div>
+                        {selectedBill.amountPaid > 0 && (
+                          <div className="flex justify-between text-green-600 font-semibold text-sm md:text-base">
+                            <span>Paid:</span>
+                            <span>₹{selectedBill.amountPaid?.toLocaleString()}</span>
+                          </div>
+                        )}
+                        {(selectedBill.paymentStatus === 'pending' || selectedBill.paymentStatus === 'partial') && (
+                          <div className="flex justify-between text-red-600 font-semibold text-sm md:text-base">
+                            <span>Balance Due:</span>
+                            <span>₹{((selectedBill.finalAmount || 0) - (selectedBill.amountPaid || 0)).toLocaleString()}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-                ) : null;
+                  </>
+                );
               })()}
-
-              {/* Payment Summary - Mobile Responsive */}
-              <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 md:p-5 border-2 border-gray-200">
-                <h3 className="text-base md:text-lg font-bold text-gray-800 mb-3">Payment Summary</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-gray-700 text-sm md:text-base">
-                    <span>Subtotal:</span>
-                    <span className="font-medium">₹{(selectedBill.totalAmount || selectedBill.subtotal || 0).toLocaleString()}</span>
-                  </div>
-                  {selectedBill.discount > 0 && (
-                    <div className="flex justify-between text-green-600 text-sm md:text-base">
-                      <span>Discount:</span>
-                      <span className="font-medium">-₹{selectedBill.discount?.toLocaleString()}</span>
-                    </div>
-                  )}
-                  {selectedBill.tax > 0 && Object.keys(taxBreakdownByRate || {}).length === 0 && (
-                    <div className="flex justify-between text-gray-700 text-sm md:text-base">
-                      <span>Tax (GST):</span>
-                      <span className="font-medium">₹{selectedBill.tax?.toLocaleString()}</span>
-                    </div>
-                  )}
-                  <div className="border-t-2 border-gray-300 pt-2 flex justify-between text-base md:text-lg font-bold text-gray-800">
-                    <span>Total Amount:</span>
-                    <span>₹{(selectedBill.finalAmount || 0).toLocaleString()}</span>
-                  </div>
-                  {selectedBill.amountPaid > 0 && (
-                    <div className="flex justify-between text-green-600 font-semibold text-sm md:text-base">
-                      <span>Paid:</span>
-                      <span>₹{selectedBill.amountPaid?.toLocaleString()}</span>
-                    </div>
-                  )}
-                  {(selectedBill.paymentStatus === 'pending' || selectedBill.paymentStatus === 'partial') && (
-                    <div className="flex justify-between text-red-600 font-semibold text-sm md:text-base">
-                      <span>Balance Due:</span>
-                      <span>₹{((selectedBill.finalAmount || 0) - (selectedBill.amountPaid || 0)).toLocaleString()}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
 
               {/* Payment Method & Status - Mobile Responsive */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
