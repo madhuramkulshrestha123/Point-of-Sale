@@ -67,7 +67,16 @@ app.use('/api/analytics', require('./routes/analytics.routes'));
 app.use('/api/payments', require('./routes/payment.routes'));
 app.use('/api/employees', require('./routes/employee.routes'));
 
-// Health check
+// Health check endpoint (for monitoring services)
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'UP',
+    message: 'POS Backend is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// API Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'POS Backend is running' });
 });
