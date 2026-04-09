@@ -12,7 +12,7 @@ import CategoryBreakdown from '../components/analytics/CategoryBreakdown';
 import MobileCategoryBreakdownWrapper from '../components/analytics/MobileCategoryBreakdownWrapper';
 import SalesReportPDF from '../components/analytics/SalesReportPDF';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL;
 
 const AnalyticsPage = () => {
   const [dateRange, setDateRange] = useState('week');

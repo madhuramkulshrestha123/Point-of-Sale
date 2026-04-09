@@ -5,7 +5,7 @@ import ThermalInvoice from './ThermalInvoice';
 import MobilePaymentSummaryCards from './PaymentSummaryCards';
 import MobileBillList from './BillList';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL;
 
 const PaymentsHistoryPage = () => {
   const [activeTab, setActiveTab] = useState('all'); // all, pending, completed

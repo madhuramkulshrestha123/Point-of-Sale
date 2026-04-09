@@ -17,7 +17,7 @@ import EmployeePage from '../pages/EmployeePage';
 import CRMPage from '../pages/CRMPage';
 import usePOSStore from '../store/posStore';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL;
 
 // Category mapping for display
 const categoryMap = {

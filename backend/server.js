@@ -20,7 +20,7 @@ app.use(cors({
     
     const allowedOrigins = process.env.FRONTEND_URL
       ? process.env.FRONTEND_URL.split(',')
-      : ['http://localhost:5173'];
+      : ['https://point-of-sale-m2.vercel.app'];
     
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);

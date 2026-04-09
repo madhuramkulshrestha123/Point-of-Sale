@@ -3,7 +3,7 @@ import axios from 'axios';
 import usePOSStore from '../store/posStore';
 import ThermalInvoice from './ThermalInvoice';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL;
 
 const PaymentModal = ({ isOpen, onClose, saleId, saleData, onSuccess }) => {
   const { clearCart } = usePOSStore();
