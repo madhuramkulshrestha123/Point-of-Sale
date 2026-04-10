@@ -512,7 +512,7 @@ const CartPanel = ({ onCheckout }) => {
           )}
           
           <div className="flex justify-between text-gray-700 bg-blue-50 p-1.5 rounded md:p-2">
-            <span className="font-medium">GST (18%):</span>
+            <span className="font-medium">GST:</span>
             <span className="font-bold">₹{taxAmount.toLocaleString()}</span>
           </div>
           

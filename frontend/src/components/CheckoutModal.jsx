@@ -176,7 +176,7 @@ const CheckoutModal = ({ isOpen, onClose }) => {
           )}
           
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600 font-medium">GST (18%):</span>
+            <span className="text-gray-600 font-medium">GST:</span>
             <span className="font-semibold text-gray-800">₹{taxAmount.toLocaleString()}</span>
           </div>
           
