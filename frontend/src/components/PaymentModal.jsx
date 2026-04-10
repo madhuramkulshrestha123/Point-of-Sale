@@ -14,8 +14,7 @@ const PaymentModal = ({ isOpen, onClose, saleId, saleData, onSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showInvoice, setShowInvoice] = useState(false);
   const [lastCompletedSaleId, setLastCompletedSaleId] = useState(null);
-  const [shouldPrint, setShouldPrint] = useState(false);
-  const [invoiceReady, setInvoiceReady] = useState(false);
+
 
   useEffect(() => {
     if (isOpen) {
@@ -24,7 +23,6 @@ const PaymentModal = ({ isOpen, onClose, saleId, saleData, onSuccess }) => {
       setPaymentMethod('cash');
       setCurrentSaleData(null);
       setIsLoading(false);
-      setInvoiceReady(false);
       
       // If saleData is passed directly (e.g., from CheckoutModal), use it
       if (saleData) {
@@ -37,23 +35,7 @@ const PaymentModal = ({ isOpen, onClose, saleId, saleData, onSuccess }) => {
     }
   }, [isOpen, saleId, saleData]);
 
-  // Auto-print when invoice modal opens and shouldPrint is true
-  useEffect(() => {
-    if (showInvoice && shouldPrint && invoiceReady) {
-      console.log('Auto-triggering print for thermal invoice');
-      setTimeout(() => {
-        window.print();
-        // After print, call success and close everything
-        setTimeout(() => {
-          onSuccess?.('Payment completed successfully');
-          setShowInvoice(false);
-          onClose();
-        }, 500);
-      }, 300);
-      setShouldPrint(false); // Reset to prevent multiple prints
-      setInvoiceReady(false);
-    }
-  }, [showInvoice, shouldPrint, invoiceReady, onSuccess, onClose]);
+
 
   const fetchSaleDetails = async (id) => {
     try {
@@ -96,7 +78,6 @@ const PaymentModal = ({ isOpen, onClose, saleId, saleData, onSuccess }) => {
 
     setProcessing(true);
     setError('');
-    setShouldPrint(printAfter);
 
     try {
       const token = localStorage.getItem('token');
@@ -130,7 +111,7 @@ const PaymentModal = ({ isOpen, onClose, saleId, saleData, onSuccess }) => {
           };
         }
         
-        console.log('Payment successful, shouldPrint:', printAfter);
+        console.log('Payment successful');
         console.log('Payment sale data:', paymentSaleData);
         
         // Set the sale data for invoice
@@ -138,15 +119,8 @@ const PaymentModal = ({ isOpen, onClose, saleId, saleData, onSuccess }) => {
         setCurrentSaleData(paymentSaleData);
         setShowInvoice(true);
         
-        if (printAfter) {
-          // Set flag to trigger print after invoice modal opens
-          console.log('Setting shouldPrint flag to true');
-          setShouldPrint(true);
-          // Don't call onSuccess or onClose yet - let print useEffect handle it
-        } else {
-          onSuccess?.('Payment completed successfully');
-          onClose();
-        }
+        // Don't call onSuccess or onClose yet - let user interact with invoice modal
+        onSuccess?.('Payment completed successfully');
       }
     } catch (err) {
       console.error('Payment error:', err);
@@ -371,13 +345,15 @@ const PaymentModal = ({ isOpen, onClose, saleId, saleData, onSuccess }) => {
       </div>
     </div>
     
-    {/* Thermal Invoice Modal */}
+    {/* Thermal Invoice Modal - Shows thermal bill with Print, Share, Close options */}
     <ThermalInvoice
       isOpen={showInvoice}
-      onClose={() => setShowInvoice(false)}
+      onClose={() => {
+        setShowInvoice(false);
+        onClose();
+      }}
       saleId={lastCompletedSaleId}
       saleData={currentSaleData}
-      onReady={() => setInvoiceReady(true)}
     />
     </>
   );
