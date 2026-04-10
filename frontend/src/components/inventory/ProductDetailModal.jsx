@@ -55,6 +55,9 @@ const ProductDetailModal = ({ isOpen, onClose, product, onUpdate }) => {
     'Other'
   ];
 
+  // Delete confirmation state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   // Initialize edit data when product changes - MUST be before early return
   React.useEffect(() => {
     if (product) {
@@ -164,6 +167,33 @@ const ProductDetailModal = ({ isOpen, onClose, product, onUpdate }) => {
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update product');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteProduct = async () => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.delete(
+        `${API_URL}/products/${product._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data.success) {
+        setSuccess('Product deleted successfully!');
+        setTimeout(() => {
+          setShowDeleteModal(false);
+          onClose(); // Close the main modal
+        }, 1500);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to delete product');
     } finally {
       setLoading(false);
     }
@@ -474,28 +504,34 @@ const ProductDetailModal = ({ isOpen, onClose, product, onUpdate }) => {
 
         {/* Action Buttons */}
         <div className="border-t p-6 bg-gray-50">
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 md:grid-cols-5 gap-3">
             <button
               onClick={() => setShowStockModal(true)}
-              className="px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+              className="px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm md:text-base"
             >
               📦 Restock
             </button>
             <button
               onClick={() => setShowDisposeModal(true)}
-              className="px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+              className="px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm md:text-base"
             >
               🗑️ Dispose
             </button>
             <button
               onClick={() => setShowEditModal(true)}
-              className="px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+              className="px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm md:text-base"
             >
               ✏️ Edit
             </button>
             <button
+              onClick={() => setShowDeleteModal(true)}
+              className="px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm md:text-base"
+            >
+              🗑️ Delete
+            </button>
+            <button
               onClick={handleClose}
-              className="px-4 py-3 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition-all"
+              className="px-4 py-3 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition-all text-sm md:text-base md:col-span-1"
             >
               Close
             </button>
@@ -629,6 +665,71 @@ const ProductDetailModal = ({ isOpen, onClose, product, onUpdate }) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4">
+            <div className="p-6 border-b">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-3xl">⚠️</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900">Delete Product</h3>
+                  <p className="text-sm text-gray-600 mt-1">This action cannot be undone</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-sm text-red-800 font-medium mb-2">You are about to delete:</p>
+                <p className="text-base font-bold text-gray-900">{product.name}</p>
+                <p className="text-sm text-gray-600 mt-1">SKU: {product.sku}</p>
+              </div>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-sm text-yellow-800">
+                  <span className="font-semibold">Warning:</span> Deleting this product will permanently remove it from the system, including all associated inventory, sales history, and stock records.
+                </p>
+              </div>
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  {error}
+                </div>
+              )}
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleDeleteProduct}
+                  disabled={loading}
+                  className="flex-1 bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      🗑️ Delete Product
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowDeleteModal(false); setError(''); }}
+                  className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
