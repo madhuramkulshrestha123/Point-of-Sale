@@ -318,12 +318,14 @@ const POSPage = ({ user, onLogout }) => {
                           setShowSearchHistory(false);
                         }
                       }}
-                      placeholder="🔍 Search products..."
+                      placeholder="Search products..."
                       className="w-full h-10 px-4 pl-10 text-sm border border-gray-300 rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white shadow-sm"
                       autoComplete="off"
                     />
                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-base">
-                      🔍
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
                     </span>
                     {searchQuery && (
                       <button
@@ -402,12 +404,14 @@ const POSPage = ({ user, onLogout }) => {
                     setShowSearchHistory(false);
                   }
                 }}
-                placeholder="🔍  Search products by name, brand, SKU, barcode, or vehicle compatibility... (Ctrl+K)"
+                placeholder="  Search products by name, brand, SKU, barcode, or vehicle compatibility... (Ctrl+K)"
                 className="w-full h-12 px-5 pl-12 text-sm border border-gray-300 rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white shadow-sm hover:shadow-md"
                 autoComplete="off"
               />
               <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg">
-                🔍
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
               </span>
               {searchQuery && (
                 <button
