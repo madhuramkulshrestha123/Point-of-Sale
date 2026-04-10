@@ -119,8 +119,7 @@ const PaymentModal = ({ isOpen, onClose, saleId, saleData, onSuccess }) => {
         setCurrentSaleData(paymentSaleData);
         setShowInvoice(true);
         
-        // Don't call onSuccess or onClose yet - let user interact with invoice modal
-        onSuccess?.('Payment completed successfully');
+        // Don't call onSuccess here - wait until user closes the invoice modal
       }
     } catch (err) {
       console.error('Payment error:', err);
@@ -350,6 +349,8 @@ const PaymentModal = ({ isOpen, onClose, saleId, saleData, onSuccess }) => {
       isOpen={showInvoice}
       onClose={() => {
         setShowInvoice(false);
+        // Now call onSuccess to notify parent and close payment modal
+        onSuccess?.('Payment completed successfully');
         onClose();
       }}
       saleId={lastCompletedSaleId}
