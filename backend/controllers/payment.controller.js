@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Payment = require('../models/Payment.model');
 const Sale = require('../models/Sale.model');
 const Customer = require('../models/Customer.model');
+const Inventory = require('../models/Inventory.model');
 
 // @desc    Create a payment
 // @route   POST /api/payments
@@ -246,6 +247,118 @@ exports.getPayment = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching payment',
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Export payments data
+// @route   GET /api/payments/export
+// @access  Private
+exports.exportPayments = async (req, res) => {
+  try {
+    const { startDate, endDate, paymentStatus, store } = req.query;
+
+    // Build query
+    let query = {};
+
+    // Date filter
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        query.createdAt.$gte = start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.createdAt.$lte = end;
+      }
+    }
+
+    // Payment status filter
+    if (paymentStatus) {
+      query.status = paymentStatus;
+    }
+
+    // Store filter
+    if (store) {
+      query.store = store;
+    }
+
+    // Fetch payments with populated data
+    const payments = await Payment.find(query)
+      .populate({
+        path: 'sale',
+        populate: [
+          { path: 'customer' },
+          { path: 'cashier', select: 'name email' },
+          { path: 'items.product' },
+        ],
+      })
+      .sort({ createdAt: -1 });
+
+    // Calculate summary statistics
+    const totalOrders = payments.length;
+    const totalRevenue = payments.reduce((sum, payment) => {
+      const saleData = payment.sale || payment;
+      return sum + (saleData.finalAmount || payment.amount || 0);
+    }, 0);
+
+    const totalPaid = payments.reduce((sum, payment) => {
+      return sum + (payment.amount || 0);
+    }, 0);
+
+    const totalPending = totalRevenue - totalPaid;
+
+    // Get unique customers
+    const customers = payments
+      .filter(p => p.sale?.customer)
+      .map(p => p.sale.customer._id.toString());
+    const totalCustomers = new Set(customers).size;
+
+    // Calculate profit if items have cost price
+    let totalCost = 0;
+    let totalProfit = 0;
+    
+    payments.forEach(payment => {
+      const saleData = payment.sale || payment;
+      if (saleData.items && saleData.items.length > 0) {
+        saleData.items.forEach(item => {
+          const qty = item.quantity || 0;
+          const sellingPrice = item.sellingPrice || 0;
+          const costPrice = item.costPrice || 0;
+          
+          totalCost += costPrice * qty;
+          totalProfit += (sellingPrice - costPrice) * qty;
+        });
+      }
+    });
+
+    const profitMargin = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(2) : 0;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        payments,
+        summary: {
+          totalOrders,
+          totalRevenue,
+          totalPaid,
+          totalPending,
+          totalCustomers,
+          totalCost,
+          netProfit: totalProfit,
+          profitMargin,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Export payments error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error exporting payments data',
       error: error.message,
     });
   }

@@ -7,12 +7,14 @@ const {
   getPayments,
   getPendingBills,
   getPayment,
+  exportPayments,
 } = require('../controllers/payment.controller');
 
 router.post('/', protect, createPayment);
 router.post('/save-cart', protect, saveCartAsPending);
 router.get('/', protect, getPayments);
 router.get('/pending', protect, getPendingBills);
+router.get('/export', protect, exportPayments);
 router.get('/:id', protect, getPayment);
 
 module.exports = router;

@@ -4,6 +4,8 @@ import PaymentModal from './PaymentModal';
 import ThermalInvoice from './ThermalInvoice';
 import MobilePaymentSummaryCards from './PaymentSummaryCards';
 import MobileBillList from './BillList';
+import { exportPaymentsPDF } from '../utils/exportPDF';
+import { exportPaymentsExcel } from '../utils/exportExcel';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -30,6 +32,7 @@ const PaymentsHistoryPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState('newest'); // newest, oldest, price-high, price-low, name-asc, name-desc
   const [showMobileFilter, setShowMobileFilter] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -351,6 +354,85 @@ const PaymentsHistoryPage = () => {
     window.print();
   };
 
+  // Export handlers
+  const handleExportPDF = async () => {
+    try {
+      setExporting(true);
+      const token = localStorage.getItem('token');
+      const { startDate, endDate } = getDateRange();
+
+      // Build query params
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+      if (activeTab === 'completed') params.append('paymentStatus', 'completed');
+      else if (activeTab === 'pending') params.append('paymentStatus', 'pending');
+
+      // Fetch export data
+      const response = await axios.get(`${API_URL}/payments/export?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.data.success) {
+        const { payments, summary } = response.data.data;
+        
+        // Prepare filters info
+        const filters = {
+          startDate,
+          endDate,
+          paymentStatus: activeTab === 'completed' ? 'completed' : activeTab === 'pending' ? 'pending' : null,
+        };
+
+        // Export PDF
+        await exportPaymentsPDF(payments, summary, filters);
+      }
+    } catch (error) {
+      console.error('PDF export error:', error);
+      alert('Failed to export PDF: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      setExporting(true);
+      const token = localStorage.getItem('token');
+      const { startDate, endDate } = getDateRange();
+
+      // Build query params
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+      if (activeTab === 'completed') params.append('paymentStatus', 'completed');
+      else if (activeTab === 'pending') params.append('paymentStatus', 'pending');
+
+      // Fetch export data
+      const response = await axios.get(`${API_URL}/payments/export?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.data.success) {
+        const { payments, summary } = response.data.data;
+        
+        // Prepare filters info
+        const filters = {
+          startDate,
+          endDate,
+          paymentStatus: activeTab === 'completed' ? 'completed' : activeTab === 'pending' ? 'pending' : null,
+        };
+
+        // Export Excel
+        await exportPaymentsExcel(payments, summary, filters);
+      }
+    } catch (error) {
+      console.error('Excel export error:', error);
+      alert('Failed to export Excel: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const handleShareBill = async () => {
     if (!selectedBill) return;
     
@@ -416,17 +498,70 @@ const PaymentsHistoryPage = () => {
         <div className="max-w-7xl mx-auto">
           {/* Header - Mobile Responsive */}
           <div className="mb-4 md:mb-6">
-            <div className="flex items-center justify-between mb-2 md:mb-2">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-2 md:mb-2">
               <h1 className="text-lg font-bold text-gray-800 md:text-3xl">Payments & Bills</h1>
+              
+              {/* Export Buttons - Desktop */}
+              <div className="hidden md:flex items-center gap-3">
+                <button
+                  onClick={handleExportPDF}
+                  disabled={exporting}
+                  className="px-4 py-2.5 bg-red-600 text-white rounded-lg font-semibold text-sm hover:bg-red-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center gap-2"
+                  style={{ minHeight: '44px' }}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Export PDF
+                </button>
+                <button
+                  onClick={handleExportExcel}
+                  disabled={exporting}
+                  className="px-4 py-2.5 bg-green-600 text-white rounded-lg font-semibold text-sm hover:bg-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center gap-2"
+                  style={{ minHeight: '44px' }}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Export Excel
+                </button>
+              </div>
+              
               <button 
                 onClick={() => setShowMobileFilter(!showMobileFilter)}
                 className="md:hidden px-3 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold text-sm hover:bg-gray-200 transition-colors"
                 style={{ minHeight: '44px' }}
               >
-                📅 Filter
+                Filter
               </button>
             </div>
             <p className="text-xs text-gray-500 hidden md:block">Manage all your transactions and pending bills</p>
+            
+            {/* Export Buttons - Mobile */}
+            <div className="md:hidden grid grid-cols-2 gap-2 mt-3">
+              <button
+                onClick={handleExportPDF}
+                disabled={exporting}
+                className="px-3 py-2.5 bg-red-600 text-white rounded-lg font-semibold text-xs hover:bg-red-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-1.5"
+                style={{ minHeight: '44px' }}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export PDF
+              </button>
+              <button
+                onClick={handleExportExcel}
+                disabled={exporting}
+                className="px-3 py-2.5 bg-green-600 text-white rounded-lg font-semibold text-xs hover:bg-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-1.5"
+                style={{ minHeight: '44px' }}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export Excel
+              </button>
+            </div>
           </div>
 
           {/* Mobile Filter Dropdown */}
@@ -492,7 +627,7 @@ const PaymentsHistoryPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-blue-100 text-sm font-medium">Total Orders</p>
-                  <p className="text-3xl font-bold mt-2">{summary.todayOrders}</p>
+                  <p className="text-3xl font-bold mt-2">{summary.todayOrders || 0}</p>
                 </div>
                 <div className="text-4xl opacity-80">📦</div>
               </div>
@@ -501,8 +636,8 @@ const PaymentsHistoryPage = () => {
             <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-md p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-100 text-sm font-medium">Total Sales</p>
-                  <p className="text-3xl font-bold mt-2">₹{summary.todaySales?.toLocaleString()}</p>
+                  <p className="text-green-100 text-sm font-medium">Total Revenue</p>
+                  <p className="text-3xl font-bold mt-2">₹{(summary.todaySales || 0).toLocaleString()}</p>
                 </div>
                 <div className="text-4xl opacity-80">💰</div>
               </div>
@@ -512,7 +647,7 @@ const PaymentsHistoryPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-purple-100 text-sm font-medium">{dateFilter === 'today' ? "Today's Sales" : dateFilter === 'week' ? "This Week's Sales" : dateFilter === 'month' ? "This Month's Sales" : dateFilter === '90days' ? "Last 90 Days Sales" : "Selected Period Sales"}</p>
-                  <p className="text-3xl font-bold mt-2">₹{summary.monthSales?.toLocaleString()}</p>
+                  <p className="text-3xl font-bold mt-2">₹{(summary.monthSales || 0).toLocaleString()}</p>
                 </div>
                 <div className="text-4xl opacity-80">📊</div>
               </div>
@@ -522,7 +657,7 @@ const PaymentsHistoryPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-orange-100 text-sm font-medium">{dateFilter === 'today' ? "Today's Pending" : dateFilter === 'week' ? "This Week's Pending" : dateFilter === 'month' ? "This Month's Pending" : dateFilter === '90days' ? "Last 90 Days Pending" : "Selected Period Pending"}</p>
-                  <p className="text-3xl font-bold mt-2">{summary.totalPending}</p>
+                  <p className="text-3xl font-bold mt-2">{summary.totalPending || 0}</p>
                 </div>
                 <div className="text-4xl opacity-80">⏳</div>
               </div>
