@@ -2,116 +2,120 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 /**
+ * Format currency with INR prefix and comma separators
+ */
+function formatCurrency(amount) {
+  const numAmount = parseFloat(amount);
+  if (isNaN(numAmount)) return 'INR 0.00';
+  
+  const formatted = numAmount.toLocaleString('en-IN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  
+  return `INR ${formatted}`;
+}
+
+/**
  * Export Payments Report as PDF
- * @param {Object} options - Export options
- * @param {Array} options.data - Payments data
- * @param {Object} options.summary - Summary statistics
- * @param {Object} options.filters - Applied filters
+ * @param {Array} data - Payments data
+ * @param {Object} summary - Summary statistics
+ * @param {Object} filters - Applied filters
  */
 export const exportPaymentsPDF = async (data, summary, filters) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 20;
+  const contentWidth = pageWidth - (margin * 2);
 
-  // Set default font
-  doc.setFont('helvetica');
-
-  // ==================== HEADER ====================
-  doc.setFontSize(22);
+  // ==================== HEADER SECTION ====================
+  doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
-  doc.text('M.K EXPORTS', pageWidth / 2, 20, { align: 'center' });
-
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.text('123, Auto Parts Market, Delhi', pageWidth / 2, 26, { align: 'center' });
+  doc.setTextColor(0, 0, 0);
+  doc.text('M.K EXPORTS', pageWidth / 2, 18, { align: 'center' });
 
   doc.setFontSize(9);
-  doc.text('GSTIN: 07ABCDE1234F1Z5', pageWidth / 2, 31, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(80, 80, 80);
+  doc.text('123, Auto Parts Market, Delhi', pageWidth / 2, 24, { align: 'center' });
 
   doc.setFontSize(8);
-  doc.text('Contact: +91-9876543210', pageWidth / 2, 36, { align: 'center' });
+  doc.text('GSTIN: 07ABCDE1234F1Z5', pageWidth / 2, 29, { align: 'center' });
+
+  doc.setFontSize(7);
+  doc.text('Contact: +91-9876543210', pageWidth / 2, 33, { align: 'center' });
 
   // Horizontal divider
-  doc.setDrawColor(0, 0, 0);
-  doc.setLineWidth(0.5);
-  doc.line(20, 39, pageWidth - 20, 39);
+  doc.setDrawColor(60, 60, 60);
+  doc.setLineWidth(0.8);
+  doc.line(margin, 36, pageWidth - margin, 36);
 
   // ==================== REPORT TITLE ====================
-  doc.setFontSize(14);
+  doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');
-  doc.text('PAYMENTS & SALES REPORT', pageWidth / 2, 48, { align: 'center' });
+  doc.setTextColor(0, 0, 0);
+  doc.text('PAYMENTS & SALES REPORT', pageWidth / 2, 44, { align: 'center' });
 
   // Date range
-  doc.setFontSize(9);
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
   const dateRangeText = filters?.startDate && filters?.endDate
     ? `From ${formatDate(filters.startDate)} to ${formatDate(filters.endDate)}`
     : 'All Dates';
-  doc.text(dateRangeText, pageWidth / 2, 54, { align: 'center' });
+  doc.text(dateRangeText, pageWidth / 2, 50, { align: 'center' });
 
   // Filter info
+  let filterYPos = 55;
   if (filters?.paymentStatus) {
-    doc.text(`Status: ${filters.paymentStatus.toUpperCase()}`, pageWidth / 2, 59, { align: 'center' });
+    doc.text(`Status: ${filters.paymentStatus.toUpperCase()}`, pageWidth / 2, filterYPos, { align: 'center' });
+    filterYPos += 5;
   }
 
-  // ==================== SUMMARY SECTION ====================
-  let yPos = 68;
-
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Summary', 20, yPos);
-  yPos += 8;
-
-  // Summary grid - 2 columns
-  const summaryData = [
-    { label: 'Total Orders', value: summary.totalOrders || 0 },
+  // ==================== SUMMARY GRID ====================
+  let summaryYPos = filterYPos + 3;
+  
+  const summaryItems = [
+    { label: 'Total Orders', value: (summary.totalOrders || 0).toString() },
     { label: 'Total Revenue', value: formatCurrency(summary.totalRevenue || 0) },
     { label: 'Total Paid', value: formatCurrency(summary.totalPaid || 0) },
     { label: 'Total Pending', value: formatCurrency(summary.totalPending || 0) },
-    { label: 'Total Customers', value: summary.totalCustomers || 0 },
   ];
 
-  doc.setFontSize(8);
-  const colWidth = 80;
-  const rowHeight = 8;
-  const startX = 20;
-  const startY = yPos;
-
-  // Draw summary boxes
-  summaryData.forEach((item, index) => {
+  const boxWidth = (contentWidth - 10) / 2;
+  const boxHeight = 16;
+  
+  summaryItems.forEach((item, index) => {
     const col = index % 2;
     const row = Math.floor(index / 2);
-    const x = startX + (col * colWidth);
-    const y = startY + (row * (rowHeight + 12));
+    const x = margin + (col * (boxWidth + 10));
+    const y = summaryYPos + (row * (boxHeight + 6));
 
     // Box background
-    doc.setFillColor(col === 0 ? 240 : 250, col === 0 ? 250 : 240, 245);
-    doc.rect(x, y, colWidth - 5, rowHeight + 8, 'F');
+    doc.setFillColor(250, 250, 250);
+    doc.roundedRect(x, y, boxWidth, boxHeight, 2, 2, 'F');
 
-    // Box border
-    doc.setDrawColor(200, 200, 200);
-    doc.rect(x, y, colWidth - 5, rowHeight + 8);
+    // Left border accent
+    doc.setFillColor(34, 197, 94);
+    doc.rect(x, y, 2, boxHeight, 'F');
 
     // Label
     doc.setFontSize(7);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 100, 100);
-    doc.text(item.label, x + 3, y + 5);
+    doc.text(item.label, x + 6, y + 6);
 
     // Value
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-    doc.text(item.value.toString(), x + 3, y + 12);
+    doc.setTextColor(20, 20, 20);
+    doc.text(item.value, x + 6, y + 12);
   });
 
-  yPos = startY + (Math.ceil(summaryData.length / 2) * (rowHeight + 12)) + 8;
+  // Calculate next Y position
+  const tableStartY = summaryYPos + (boxHeight * 2) + 6;
 
-  // ==================== TABLE ====================
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Payment Details', 20, yPos);
-  yPos += 6;
-
+  // ==================== MAIN TABLE ====================
   const tableData = data.map((payment) => {
     const saleData = payment.sale || payment;
     const invoiceNumber = payment.invoiceNumber || saleData.invoiceNumber || 'N/A';
@@ -121,7 +125,7 @@ export const exportPaymentsPDF = async (data, summary, filters) => {
     const status = (payment.status || saleData.paymentStatus || 'N/A').toUpperCase();
     const totalAmount = saleData.finalAmount || payment.amount || 0;
     const paidAmount = payment.amount || saleData.amountPaid || 0;
-    const dueAmount = totalAmount - paidAmount;
+    const dueAmount = Math.max(0, totalAmount - paidAmount);
 
     return [
       invoiceNumber,
@@ -131,60 +135,95 @@ export const exportPaymentsPDF = async (data, summary, filters) => {
       status,
       formatCurrency(totalAmount),
       formatCurrency(paidAmount),
-      formatCurrency(dueAmount > 0 ? dueAmount : 0),
+      formatCurrency(dueAmount),
     ];
   });
 
   autoTable(doc, {
-    startY: yPos,
+    startY: tableStartY,
     head: [[
       'Invoice #',
       'Date',
       'Customer',
       'Method',
       'Status',
-      'Total Amount',
-      'Paid Amount',
-      'Due Amount',
+      'Total',
+      'Paid',
+      'Due',
     ]],
     body: tableData,
-    styles: {
-      fontSize: 7.5,
-      cellPadding: 3,
-      lineColor: [0, 0, 0],
-      lineWidth: 0.1,
-    },
+    theme: 'grid',
     headStyles: {
-      fillColor: [34, 197, 94], // Green theme
+      fillColor: [34, 197, 94],
       textColor: [255, 255, 255],
       fontStyle: 'bold',
+      fontSize: 8,
       halign: 'center',
+      cellPadding: 4,
+    },
+    bodyStyles: {
+      fontSize: 7.5,
+      cellPadding: 4,
+      textColor: [40, 40, 40],
     },
     alternateRowStyles: {
-      fillColor: [245, 245, 245], // Light grey
+      fillColor: [248, 250, 252],
     },
     columnStyles: {
-      0: { fontStyle: 'bold', cellWidth: 25 },
-      1: { cellWidth: 25 },
-      2: { cellWidth: 35 },
-      3: { cellWidth: 20, halign: 'center' },
-      4: { cellWidth: 22, halign: 'center' },
-      5: { halign: 'right', cellWidth: 28 },
-      6: { halign: 'right', cellWidth: 28 },
-      7: { halign: 'right', cellWidth: 28 },
+      0: { cellWidth: 28, fontStyle: 'bold', fontSize: 7 },
+      1: { cellWidth: 22, halign: 'center' },
+      2: { cellWidth: 40 },
+      3: { cellWidth: 20, halign: 'center', fontSize: 7 },
+      4: { cellWidth: 24, halign: 'center', fontStyle: 'bold', fontSize: 7 },
+      5: { cellWidth: 28, halign: 'right', fontStyle: 'bold' },
+      6: { cellWidth: 28, halign: 'right' },
+      7: { cellWidth: 28, halign: 'right', fontStyle: 'bold' },
     },
-    margin: { left: 20, right: 20 },
-    theme: 'grid',
+    margin: { left: margin, right: margin },
+    didDrawPage: (data) => {
+      // Header on each page
+      if (data.pageNumber > 1) {
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text('M.K EXPORTS', pageWidth / 2, 15, { align: 'center' });
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('PAYMENTS & SALES REPORT', pageWidth / 2, 21, { align: 'center' });
+      }
+
+      // Footer
+      const pageHeight = doc.internal.pageSize.getHeight();
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(128, 128, 128);
+      
+      const currentDate = new Date();
+      const generatedText = `Generated on: ${currentDate.toLocaleDateString('en-IN')} ${currentDate.toLocaleTimeString('en-IN')}`;
+      doc.text(generatedText, margin, pageHeight - 10);
+      
+      doc.text('Powered by AutoParts POS', pageWidth / 2, pageHeight - 10, { align: 'center' });
+      
+      const totalPages = doc.internal.getNumberOfPages();
+      doc.text(
+        `Page ${data.pageNumber} of ${totalPages}`,
+        pageWidth - margin,
+        pageHeight - 10,
+        { align: 'right' }
+      );
+    },
   });
 
-  // ==================== TAX / BUSINESS SUMMARY ====================
-  yPos = doc.lastAutoTable.finalY + 10;
+  // ==================== BUSINESS SUMMARY ====================
+  let finalY = doc.lastAutoTable.finalY + 10;
 
   if (summary.totalCost !== undefined && summary.netProfit !== undefined) {
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text('Business Summary', 20, yPos);
-    yPos += 6;
+    doc.setTextColor(0, 0, 0);
+    doc.text('Business Summary', margin, finalY);
+    finalY += 5;
 
     const businessData = [
       ['Total Revenue', formatCurrency(summary.totalRevenue || 0)],
@@ -194,108 +233,68 @@ export const exportPaymentsPDF = async (data, summary, filters) => {
     ];
 
     autoTable(doc, {
-      startY: yPos,
+      startY: finalY,
       body: businessData,
+      theme: 'plain',
       styles: {
         fontSize: 9,
         cellPadding: 4,
+        textColor: [40, 40, 40],
       },
       columnStyles: {
         0: { fontStyle: 'bold', cellWidth: 60 },
-        1: { halign: 'right', cellWidth: 60 },
+        1: { halign: 'right', cellWidth: 80, fontStyle: 'bold' },
       },
-      margin: { left: 20, right: 80 },
-      theme: 'plain',
+      margin: { left: margin, right: margin + 50 },
     });
 
-    yPos = doc.lastAutoTable.finalY + 8;
+    finalY = doc.lastAutoTable.finalY + 8;
   }
 
-  // ==================== FINAL TOTAL SECTION ====================
+  // ==================== FINAL TOTALS BOX ====================
   const totalPaid = summary.totalPaid || 0;
   const totalDue = summary.totalPending || 0;
-
-  const summaryBoxY = yPos + 5;
-  const summaryBoxHeight = 24;
-
-  // Box background
-  doc.setFillColor(240, 250, 240);
-  doc.rect(60, summaryBoxY, pageWidth - 120, summaryBoxHeight, 'F');
-
-  // Box border
-  doc.setDrawColor(34, 197, 94);
-  doc.setLineWidth(1);
-  doc.rect(60, summaryBoxY, pageWidth - 120, summaryBoxHeight);
-
-  // Left side - Total Paid
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(0, 0, 0);
-  doc.text('TOTAL PAID', 65, summaryBoxY + 9);
+  const boxWidth2 = contentWidth - 40;
+  const boxX = margin + 20;
   
-  doc.setFontSize(12);
-  doc.setTextColor(34, 197, 94);
-  doc.text(formatCurrency(totalPaid), pageWidth / 2 - 5, summaryBoxY + 9);
+  // Box background
+  doc.setFillColor(240, 253, 244);
+  doc.roundedRect(boxX, finalY, boxWidth2, 28, 3, 3, 'F');
+
+  // Border
+  doc.setDrawColor(34, 197, 94);
+  doc.setLineWidth(1.5);
+  doc.roundedRect(boxX, finalY, boxWidth2, 28, 3, 3, 'S');
 
   // Divider line
   doc.setDrawColor(200, 200, 200);
-  doc.setLineWidth(0.3);
-  doc.line(65, summaryBoxY + 13, pageWidth - 65, summaryBoxY + 13);
+  doc.setLineWidth(0.5);
+  doc.line(boxX + 10, finalY + 14, boxX + boxWidth2 - 10, finalY + 14);
 
-  // Right side - Total Credit/Due
+  // Total Paid
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(0, 0, 0);
-  doc.text('TOTAL CREDIT/DUE', 65, summaryBoxY + 20);
+  doc.setTextColor(60, 60, 60);
+  doc.text('TOTAL PAID', boxX + 10, finalY + 9);
+  
+  doc.setFontSize(12);
+  doc.setTextColor(34, 197, 94);
+  doc.text(formatCurrency(totalPaid), pageWidth / 2 + 15, finalY + 9);
+
+  // Total Credit/Due
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(60, 60, 60);
+  doc.text('TOTAL CREDIT/DUE', boxX + 10, finalY + 21);
   
   doc.setFontSize(12);
   doc.setTextColor(239, 68, 68);
-  doc.text(formatCurrency(totalDue), pageWidth / 2 - 5, summaryBoxY + 20);
-
-  // ==================== FOOTER ====================
-  const pageHeight = doc.internal.pageSize.getHeight();
-  doc.setFontSize(7);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(128, 128, 128);
-  
-  const currentDate = new Date();
-  const generatedText = `Generated on: ${currentDate.toLocaleDateString('en-IN')} ${currentDate.toLocaleTimeString('en-IN')}`;
-  doc.text(generatedText, pageWidth / 2, pageHeight - 15, { align: 'center' });
-  
-  doc.text('Powered by AutoParts POS', pageWidth / 2, pageHeight - 10, { align: 'center' });
-  
-  // Page numbers
-  const totalPages = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= totalPages; i++) {
-    doc.setPage(i);
-    doc.text(
-      `Page ${i} of ${totalPages}`,
-      pageWidth - 20,
-      pageHeight - 10,
-      { align: 'right' }
-    );
-  }
+  doc.text(formatCurrency(totalDue), pageWidth / 2 + 15, finalY + 21);
 
   // Save PDF
   const fileName = `payments-report-${new Date().toISOString().split('T')[0]}.pdf`;
   doc.save(fileName);
 };
-
-/**
- * Format currency with Indian Rupee symbol and comma separators
- */
-function formatCurrency(amount) {
-  const numAmount = parseFloat(amount);
-  if (isNaN(numAmount)) return '₹0.00';
-  
-  // Format with Indian numbering system
-  const formatted = numAmount.toLocaleString('en-IN', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-  
-  return `₹${formatted}`;
-}
 
 /**
  * Format date to DD-MM-YYYY
