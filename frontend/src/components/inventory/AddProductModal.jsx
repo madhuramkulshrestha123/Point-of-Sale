@@ -3,21 +3,35 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-// Category images mapping - using real PNG images
-const categoryImages = [
-  { id: 'engine-oils', name: 'Engine Oils', image: '/imgs/engine_oil.png', color: 'from-blue-500 to-blue-600' },
-  { id: 'brake-parts', name: 'Brake Parts', image: '/imgs/brake parts.png', color: 'from-red-500 to-red-600' },
-  { id: 'filters', name: 'Filters', image: '/imgs/filter.png', color: 'from-green-500 to-green-600' },
-  { id: 'batteries', name: 'Batteries', image: '/imgs/battery.png', color: 'from-yellow-500 to-yellow-600' },
-  { id: 'spark-plugs', name: 'Spark Plugs', image: '/imgs/spark_plug.png', color: 'from-purple-500 to-purple-600' },
-  { id: 'accessories', name: 'Accessories', image: '/imgs/acceosories.png', color: 'from-indigo-500 to-indigo-600' },
-];
+// Category image/icon mapping for display
+const CATEGORY_ICONS = {
+  'Engine Oil': { icon: '🛢️', color: 'from-blue-400 to-blue-600' },
+  'Filters': { icon: '🔧', color: 'from-green-400 to-green-600' },
+  'Brakes': { icon: '🔴', color: 'from-red-400 to-red-600' },
+  'Battery': { icon: '🔋', color: 'from-yellow-400 to-yellow-600' },
+  'Tires': { icon: '⚫', color: 'from-gray-600 to-gray-800' },
+  'Accessories': { icon: '🔩', color: 'from-purple-400 to-purple-600' },
+};
 
-const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
+// Helper function to get category icon data
+const getCategoryIconData = (imageValue) => {
+  if (!imageValue) return { icon: '📦', color: 'from-gray-400 to-gray-600' };
+  
+  // If it's a URL, return null to indicate image should be used
+  if (imageValue.startsWith('http')) {
+    return { isUrl: true, url: imageValue };
+  }
+  
+  // Otherwise return the predefined icon
+  return CATEGORY_ICONS[imageValue] || { icon: '📦', color: 'from-gray-400 to-gray-600' };
+};
+
+const AddProductModal = ({ isOpen, onClose, onSuccess, suppliers: suppliersProp }) => {
   const [categories, setCategories] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedCategoryImage, setSelectedCategoryImage] = useState(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -41,9 +55,21 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
   useEffect(() => {
     if (isOpen) {
       fetchCategories();
-      fetchSuppliers();
+      
+      // Use suppliers from props if available, otherwise fetch
+      if (suppliersProp && suppliersProp.length > 0) {
+        console.log('Suppliers from props:', suppliersProp);
+        setSuppliers(suppliersProp);
+      } else {
+        fetchSuppliers();
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, suppliersProp]);
+
+  // Log suppliers when they change
+  useEffect(() => {
+    console.log('Current suppliers state:', suppliers);
+  }, [suppliers]);
 
   const fetchCategories = async () => {
     try {
@@ -56,8 +82,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
       }
     } catch (err) {
       console.error('Error fetching categories:', err);
-      // Use default categories from categoryImages if API fails
-      setCategories(categoryImages.map(cat => ({ _id: cat.id, name: cat.name })));
+      setCategories([]);
     }
   };
 
@@ -68,6 +93,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data.success) {
+        console.log('Fetched suppliers:', response.data.data.suppliers);
         setSuppliers(response.data.data.suppliers);
       }
     } catch (err) {
@@ -83,6 +109,32 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
       ...prev,
       [name]: value,
     }));
+
+    // Update category image when category changes
+    if (name === 'category') {
+      const category = categories.find(c => c.name === value);
+      if (category) {
+        setSelectedCategoryImage(category.image);
+      } else {
+        setSelectedCategoryImage(null);
+      }
+    }
+
+    // Handle supplier selection
+    if (name === 'supplier') {
+      const supplier = suppliers.find(s => s._id === value);
+      if (supplier) {
+        setFormData(prev => ({
+          ...prev,
+          supplier: supplier._id,
+        }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          supplier: '',
+        }));
+      }
+    }
 
     // Auto-calculate discount when MRP or Selling Price changes
     if (name === 'mrp' || name === 'sellingPrice') {
@@ -112,6 +164,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
         stockQuantity: parseInt(formData.stockQuantity),
         reorderLevel: parseInt(formData.reorderLevel),
         vehicleCompatibility: formData.vehicleCompatibility.split(',').map(v => v.trim()).filter(v => v),
+        categoryImage: selectedCategoryImage,
       };
 
       // Remove supplier field if empty to avoid validation error
@@ -155,6 +208,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
       barcode: '',
       image: '',
     });
+    setSelectedCategoryImage(null);
   };
 
   if (!isOpen) return null;
@@ -190,43 +244,49 @@ const AddProductModal = ({ isOpen, onClose, onSuccess }) => {
             <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-2 md:mb-3">
               Select Category *
             </label>
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3">
-              {categoryImages.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, category: cat.id }))}
-                  className={`p-3 md:p-4 rounded-lg md:rounded-xl border-2 transition-all ${
-                    formData.category === cat.id
-                      ? 'border-primary ring-2 ring-primary/20 bg-primary/5'
-                      : 'border-gray-200 hover:border-primary-light hover:bg-gray-50'
-                  }`}
-                  style={{ minHeight: '44px' }}
-                >
-                  <div className={`w-10 h-10 md:w-12 md:h-12 mx-auto rounded-lg bg-gradient-to-br ${cat.color} flex items-center justify-center mb-1 md:mb-2 overflow-hidden`}>
-                    <img 
-                      src={cat.image} 
-                      alt={cat.name}
-                      className="w-full h-full object-contain"
-                      onError={(e) => {
-                        // Fallback to emoji if image fails
-                        const emojiMap = {
-                          'engine-oils': '🛢️',
-                          'brake-parts': '⚙️',
-                          'filters': '🔧',
-                          'batteries': '🔋',
-                          'spark-plugs': '⚡',
-                          'accessories': '🚗'
-                        };
-                        e.target.style.display = 'none';
-                        e.target.parentElement.innerHTML = `<span class="text-xl md:text-2xl">${emojiMap[cat.id] || '📦'}</span>`;
-                      }}
-                    />
-                  </div>
-                  <p className="text-[10px] md:text-xs font-medium text-gray-700 text-center">{cat.name}</p>
-                </button>
+            <select
+              name="category"
+              value={formData.category}
+              onChange={handleInputChange}
+              required
+              className="w-full px-3 md:px-4 py-2.5 md:py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm md:text-base font-medium"
+              style={{ minHeight: '48px' }}
+            >
+              <option value="">-- Select a Category --</option>
+              {categories.map((category) => (
+                <option key={category._id} value={category.name}>
+                  {category.name}
+                </option>
               ))}
-            </div>
+            </select>
+            
+            {/* Show selected category image/icon */}
+            {selectedCategoryImage && (
+              <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center gap-3">
+                  {(() => {
+                    const iconData = getCategoryIconData(selectedCategoryImage);
+                    return iconData.isUrl ? (
+                      <img
+                        src={iconData.url}
+                        alt="Category"
+                        className="w-14 h-14 rounded-lg object-cover shadow-md"
+                      />
+                    ) : (
+                      <div
+                        className={`w-14 h-14 rounded-lg bg-gradient-to-br ${iconData.color} flex items-center justify-center text-2xl shadow-md`}
+                      >
+                        {iconData.icon}
+                      </div>
+                    );
+                  })()}
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">Selected Category</p>
+                    <p className="text-xs text-gray-600">{categories.find(c => c._id === formData.category)?.name}</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Basic Information */}

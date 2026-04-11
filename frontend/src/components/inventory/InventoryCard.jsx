@@ -1,5 +1,15 @@
 import React from 'react';
 
+// Category icons mapping
+const CATEGORY_ICONS = {
+  'Engine Oil': { icon: '🛢️', color: 'from-blue-400 to-blue-600' },
+  'Filters': { icon: '🔧', color: 'from-green-400 to-green-600' },
+  'Brakes': { icon: '🔴', color: 'from-red-400 to-red-600' },
+  'Battery': { icon: '🔋', color: 'from-yellow-400 to-yellow-600' },
+  'Tires': { icon: '⚫', color: 'from-gray-600 to-gray-800' },
+  'Accessories': { icon: '🔩', color: 'from-purple-400 to-purple-600' },
+};
+
 const InventoryCard = ({ product, onView, onEdit }) => {
   const getStatusBadge = () => {
     if (product.stockQuantity === 0) {
@@ -36,7 +46,27 @@ const InventoryCard = ({ product, onView, onEdit }) => {
           : 'border-gray-200'
       }`}
     >
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start gap-3">
+        {/* Category Icon */}
+        {(() => {
+          // Check if categoryImage is a URL
+          if (product.categoryImage && product.categoryImage.startsWith('http')) {
+            return (
+              <img
+                src={product.categoryImage}
+                alt={product.category}
+                className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+              />
+            );
+          }
+          // Otherwise use predefined icons
+          return (
+            <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${CATEGORY_ICONS[product.categoryImage]?.color || 'from-gray-400 to-gray-600'} flex items-center justify-center text-xl flex-shrink-0`}>
+              {CATEGORY_ICONS[product.categoryImage]?.icon || '📦'}
+            </div>
+          );
+        })()}
+        
         {/* Product Info */}
         <div className="flex-1 min-w-0">
           {/* Product Name & Category */}
@@ -49,7 +79,7 @@ const InventoryCard = ({ product, onView, onEdit }) => {
             )}
             {product.category && (
               <p className="text-[10px] text-gray-400 capitalize mt-0.5">
-                {product.category.replace('-', ' ')}
+                {product.category}
               </p>
             )}
           </div>

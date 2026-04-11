@@ -1,27 +1,22 @@
 import React, { useState } from 'react';
 
-// Category image mapping
-const categoryImageMap = {
-  'engine-oils': '/imgs/engine_oil.png',
-  'brake-parts': '/imgs/brake parts.png',
-  'filters': '/imgs/filter.png',
-  'batteries': '/imgs/battery.png',
-  'spark-plugs': '/imgs/spark_plug.png',
-  'accessories': '/imgs/acceosories.png',
+// Category icons mapping for fallback
+const CATEGORY_ICONS = {
+  'Engine Oil': '🛢️',
+  'Filters': '🔧',
+  'Brakes': '🔴',
+  'Battery': '🔋',
+  'Tires': '⚫',
+  'Accessories': '🔩',
 };
 
-// Default image for all products
-const defaultCategoryImage = '/imgs/all_products.svg';
-
-// Fallback emojis for categories
-const categoryEmojis = {
-  'all': '📦',
-  'engine-oils': '🛢️',
-  'brake-parts': '🔧',
-  'filters': '🌪️',
-  'batteries': '🔋',
-  'spark-plugs': '⚡',
-  'accessories': '✨',
+const CATEGORY_COLORS = {
+  'Engine Oil': 'from-blue-400 to-blue-600',
+  'Filters': 'from-green-400 to-green-600',
+  'Brakes': 'from-red-400 to-red-600',
+  'Battery': 'from-yellow-400 to-yellow-600',
+  'Tires': 'from-gray-600 to-gray-800',
+  'Accessories': 'from-purple-400 to-purple-600',
 };
 
 const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => {
@@ -67,31 +62,23 @@ const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => 
             src={product.image} 
             alt={product.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            onError={(e) => {
-              // Try category image first
-              const catImage = categoryImageMap[product.category];
-              if (catImage) {
-                e.target.src = catImage;
-                e.target.onerror = () => {
-                  e.target.style.display = 'none';
-                  e.target.parentElement.innerHTML = `<div class="text-3xl md:text-4xl">${categoryEmojis[product.category] || '🔧'}</div>`;
-                };
-              } else {
-                e.target.style.display = 'none';
-                e.target.parentElement.innerHTML = `<div class="text-3xl md:text-4xl">${categoryEmojis[product.category] || '🔧'}</div>`;
-              }
-            }}
           />
+        ) : product.categoryImage ? (
+          product.categoryImage.startsWith('http') ? (
+            <img 
+              src={product.categoryImage} 
+              alt={product.category}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className={`w-full h-full bg-gradient-to-br ${CATEGORY_COLORS[product.categoryImage] || 'from-gray-400 to-gray-600'} flex items-center justify-center`}>
+              <span className="text-3xl md:text-4xl">{CATEGORY_ICONS[product.categoryImage] || '📦'}</span>
+            </div>
+          )
         ) : (
-          <img 
-            src={categoryImageMap[product.category] || defaultCategoryImage} 
-            alt={product.category || 'Product'}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              e.target.style.display = 'none';
-              e.target.parentElement.innerHTML = `<div class="text-3xl md:text-4xl">${categoryEmojis[product.category] || '📦'}</div>`;
-            }}
-          />
+          <div className={`w-full h-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center`}>
+            <span className="text-3xl md:text-4xl">📦</span>
+          </div>
         )}
       </div>
       

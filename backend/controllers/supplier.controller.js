@@ -1,4 +1,5 @@
 const Supplier = require('../models/Supplier.model');
+const Product = require('../models/Product.model');
 
 // @desc    Get all suppliers
 // @route   GET /api/suppliers
@@ -137,6 +138,16 @@ exports.deleteSupplier = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'Supplier not found',
+      });
+    }
+
+    // Check if supplier is linked to any products
+    const linkedProducts = await Product.find({ supplier: req.params.id });
+    
+    if (linkedProducts.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot delete supplier. This supplier is linked to ${linkedProducts.length} product(s). Please unlink or reassign products first.`,
       });
     }
 

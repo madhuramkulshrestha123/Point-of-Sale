@@ -66,6 +66,7 @@ app.use('/api/transfers', require('./routes/transfer.routes'));
 app.use('/api/analytics', require('./routes/analytics.routes'));
 app.use('/api/payments', require('./routes/payment.routes'));
 app.use('/api/employees', require('./routes/employee.routes'));
+app.use('/api/upload', require('./routes/upload.routes'));
 
 // Health check endpoint (for monitoring services)
 app.get('/health', (req, res) => {

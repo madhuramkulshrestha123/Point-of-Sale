@@ -1,10 +1,16 @@
 import React from 'react';
 import ProductCard from './ProductCard';
 
-const ProductGrid = ({ products, selectedCategory, searchQuery, onAddToCart, favorites, onToggleFavorite }) => {
+const ProductGrid = ({ products, categories = [], selectedCategory, searchQuery, onAddToCart, favorites, onToggleFavorite, onCategoryChange }) => {
   // Filter products based on category and search query
   const filteredProducts = products.filter(product => {
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
+    if (selectedCategory === 'all') return true;
+    
+    // Case-insensitive comparison with trim
+    const productCategory = (product.category || '').trim().toLowerCase();
+    const selectedCat = selectedCategory.trim().toLowerCase();
+    const matchesCategory = productCategory === selectedCat;
+    
     const matchesSearch = !searchQuery || 
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -15,6 +21,19 @@ const ProductGrid = ({ products, selectedCategory, searchQuery, onAddToCart, fav
       ));
     
     return matchesCategory && matchesSearch;
+  });
+
+  // Debug logging
+  if (selectedCategory !== 'all') {
+    console.log('Selected category:', selectedCategory);
+    console.log('Products categories:', products.map(p => `"${p.category}"`));
+    console.log('Filtered count:', filteredProducts.length, 'out of', products.length);
+  }
+
+  // Create category image map from categories
+  const categoryImageMap = {};
+  categories.forEach(cat => {
+    categoryImageMap[cat.name] = cat.image;
   });
   
   return (
@@ -29,8 +48,22 @@ const ProductGrid = ({ products, selectedCategory, searchQuery, onAddToCart, fav
             </span>
           </h2>
           
+          {/* Mobile Category Dropdown */}
+          <select
+            value={selectedCategory}
+            onChange={(e) => onCategoryChange && onCategoryChange(e.target.value)}
+            className="md:hidden text-xs font-medium px-2 py-1.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary"
+          >
+            <option value="all">All Categories</option>
+            {categories.map((category) => (
+              <option key={category._id} value={category.name}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+          
           {searchQuery && (
-            <div className="text-xs text-gray-600 bg-blue-50 px-2 py-1 rounded-lg border border-blue-100 truncate max-w-[120px] md:max-w-none">
+            <div className="hidden md:block text-xs text-gray-600 bg-blue-50 px-2 py-1 rounded-lg border border-blue-100 truncate max-w-[120px] md:max-w-none">
               🔍 "{searchQuery}"
             </div>
           )}
@@ -62,6 +95,7 @@ const ProductGrid = ({ products, selectedCategory, searchQuery, onAddToCart, fav
                 image: product.image || '',
                 costPrice: product.costPrice ? Number(product.costPrice) : 0,
                 gstRate: product.gstRate || 18, // Include GST rate
+                categoryImage: categoryImageMap[product.category] || product.categoryImage,
               };
               
               return (

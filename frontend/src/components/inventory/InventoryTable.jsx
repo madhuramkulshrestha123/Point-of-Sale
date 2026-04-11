@@ -1,30 +1,16 @@
 import React, { useState } from 'react';
 
-// Category image mapping
-const categoryImageMap = {
-  'engine-oils': '/imgs/engine_oil.png',
-  'brake-parts': '/imgs/brake parts.png',
-  'filters': '/imgs/filter.png',
-  'batteries': '/imgs/battery.png',
-  'spark-plugs': '/imgs/spark_plug.png',
-  'accessories': '/imgs/acceosories.png',
+// Category icons mapping
+const CATEGORY_ICONS = {
+  'Engine Oil': { icon: '🛢️', color: 'from-blue-400 to-blue-600' },
+  'Filters': { icon: '🔧', color: 'from-green-400 to-green-600' },
+  'Brakes': { icon: '🔴', color: 'from-red-400 to-red-600' },
+  'Battery': { icon: '🔋', color: 'from-yellow-400 to-yellow-600' },
+  'Tires': { icon: '⚫', color: 'from-gray-600 to-gray-800' },
+  'Accessories': { icon: '🔩', color: 'from-purple-400 to-purple-600' },
 };
 
-// Default image for all products
-const defaultCategoryImage = '/imgs/all_products.svg';
-
-// Fallback emojis for categories
-const categoryEmojis = {
-  'all': '📦',
-  'engine-oils': '🛢️',
-  'brake-parts': '🔧',
-  'filters': '🌪️',
-  'batteries': '🔋',
-  'spark-plugs': '⚡',
-  'accessories': '✨',
-};
-
-const InventoryTable = ({ products, searchQuery, categoryFilter, statusFilter, onSearch, onCategoryFilter, onStatusFilter, onProductClick }) => {
+const InventoryTable = ({ products, searchQuery, categoryFilter, statusFilter, onSearch, onCategoryFilter, onStatusFilter, onProductClick, categories = [] }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -63,7 +49,8 @@ const InventoryTable = ({ products, searchQuery, categoryFilter, statusFilter, o
     return <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold border border-green-300">In Stock</span>;
   };
 
-  const categories = ['all', 'engine-oils', 'brake-parts', 'filters', 'batteries', 'spark-plugs', 'accessories'];
+  // Build category list: 'all' + dynamic categories from backend
+  const categoryList = ['all', ...categories.map(c => c.name)];
 
   return (
     <div className="bg-white rounded-xl shadow-md border border-primary-light/30 overflow-hidden">
@@ -87,9 +74,10 @@ const InventoryTable = ({ products, searchQuery, categoryFilter, statusFilter, o
             onChange={(e) => onCategoryFilter(e.target.value)}
             className="px-4 py-2.5 border-2 border-primary-light/50 rounded-lg focus:ring-2 focus:ring-primary text-sm font-medium"
           >
-            {categories.map(cat => (
-              <option key={cat} value={cat}>
-                {cat === 'all' ? 'All Categories' : cat.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            <option value="all">All Categories</option>
+            {categories.map((category) => (
+              <option key={category._id} value={category.name}>
+                {category.name}
               </option>
             ))}
           </select>
@@ -132,29 +120,24 @@ const InventoryTable = ({ products, searchQuery, categoryFilter, statusFilter, o
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-light/20 to-secondary/20 flex items-center justify-center overflow-hidden">
-                      {product.image ? (
-                        <img src={product.image} alt={product.name} className="w-full h-full object-cover" onError={(e) => {
-                          // Try category image first
-                          const catImage = categoryImageMap[product.category];
-                          if (catImage) {
-                            e.target.src = catImage;
-                            e.target.onerror = () => {
-                              e.target.style.display = 'none';
-                              e.target.parentElement.innerHTML = `<span class="text-xl">${categoryEmojis[product.category] || '🔧'}</span>`;
-                            };
-                          } else {
-                            e.target.style.display = 'none';
-                            e.target.parentElement.innerHTML = `<span class="text-xl">${categoryEmojis[product.category] || '🔧'}</span>`;
-                          }
-                        }} />
-                      ) : (
-                        <img src={categoryImageMap[product.category] || defaultCategoryImage} alt={product.category} className="w-full h-full object-cover" onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.parentElement.innerHTML = `<span class="text-xl">${categoryEmojis[product.category] || '📦'}</span>`;
-                        }} />
-                      )}
-                    </div>
+                    {(() => {
+                      // Check if categoryImage is a URL
+                      if (product.categoryImage && product.categoryImage.startsWith('http')) {
+                        return (
+                          <img
+                            src={product.categoryImage}
+                            alt={product.category}
+                            className="w-10 h-10 rounded-lg object-cover shadow-sm"
+                          />
+                        );
+                      }
+                      // Otherwise use predefined icons
+                      return (
+                        <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${CATEGORY_ICONS[product.categoryImage]?.color || 'from-gray-400 to-gray-600'} flex items-center justify-center text-lg shadow-sm`}>
+                          {CATEGORY_ICONS[product.categoryImage]?.icon || '📦'}
+                        </div>
+                      );
+                    })()}
                     <div>
                       <p className="text-sm font-semibold text-gray-800">{product.name}</p>
                       <p className="text-xs text-gray-500 mt-0.5">{product.brand}</p>

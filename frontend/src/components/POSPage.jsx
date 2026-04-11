@@ -39,6 +39,7 @@ const POSPage = ({ user, onLogout }) => {
   const [showCartDrawer, setShowCartDrawer] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState([]);
   const [searchHistory, setSearchHistory] = useState([]);
@@ -51,6 +52,7 @@ const POSPage = ({ user, onLogout }) => {
   useEffect(() => {
     if (activeMenu === 'pos') {
       fetchProducts();
+      fetchCategories();
     }
   }, [activeMenu]);
   
@@ -98,6 +100,21 @@ const POSPage = ({ user, onLogout }) => {
       setProducts([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/categories`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.data.success) {
+        setCategories(response.data.data.categories);
+      }
+    } catch (err) {
+      console.error('Error fetching categories:', err);
     }
   };
   
@@ -274,6 +291,7 @@ const POSPage = ({ user, onLogout }) => {
             <SidebarCategories
               selectedCategory={selectedCategory}
               onSelectCategory={handleCategoryChange}
+              totalProducts={products.length}
             />
           </div>
           
@@ -482,6 +500,7 @@ const POSPage = ({ user, onLogout }) => {
               ) : (
                 <ProductGrid
                   products={products}
+                  categories={categories}
                   selectedCategory={selectedCategory}
                   searchQuery={searchQuery}
                   onAddToCart={(product) => {
@@ -490,6 +509,7 @@ const POSPage = ({ user, onLogout }) => {
                   }}
                   favorites={favorites}
                   onToggleFavorite={toggleFavorite}
+                  onCategoryChange={handleCategoryChange}
                 />
               )}
             </div>

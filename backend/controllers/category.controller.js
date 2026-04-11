@@ -1,4 +1,5 @@
 const Category = require('../models/Category.model');
+const Product = require('../models/Product.model');
 
 // @desc    Get all categories
 // @route   GET /api/categories
@@ -54,7 +55,16 @@ exports.getCategory = async (req, res) => {
 // @access  Private (Admin/Manager)
 exports.createCategory = async (req, res) => {
   try {
-    const category = await Category.create(req.body);
+    const { name, image } = req.body;
+
+    if (!name || !image) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide name and image',
+      });
+    }
+
+    const category = await Category.create({ name, image });
 
     res.status(201).json({
       success: true,
@@ -82,10 +92,23 @@ exports.createCategory = async (req, res) => {
 // @access  Private (Admin/Manager)
 exports.updateCategory = async (req, res) => {
   try {
-    const category = await Category.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const { name, image } = req.body;
+
+    if (!name || !image) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide name and image',
+      });
+    }
+
+    const category = await Category.findByIdAndUpdate(
+      req.params.id,
+      { name, image },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     if (!category) {
       return res.status(404).json({
@@ -123,12 +146,22 @@ exports.deleteCategory = async (req, res) => {
       });
     }
 
-    category.isActive = false;
-    await category.save();
+    // Check if category is used in products
+    const productCount = await Product.countDocuments({ category: category.name });
+    
+    if (productCount > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot delete category. It is used in ${productCount} product(s).`,
+      });
+    }
+
+    // Hard delete since no products are using it
+    await Category.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,
-      message: 'Category deactivated successfully',
+      message: 'Category deleted successfully',
     });
   } catch (error) {
     console.error('Delete category error:', error);

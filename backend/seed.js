@@ -39,11 +39,11 @@ const sampleData = {
     },
   ],
   categories: [
-    { name: 'Motor Oil', description: 'Engine oils and lubricants' },
-    { name: 'Filters', description: 'Oil filters, air filters, fuel filters' },
-    { name: 'Brake System', description: 'Brake pads, rotors, brake fluid' },
-    { name: 'Battery', description: 'Car batteries and accessories' },
-    { name: 'Tires', description: 'Car tires and wheels' },
+    { name: 'Motor Oil', description: 'Engine oils and lubricants', image: 'Engine Oil' },
+    { name: 'Filters', description: 'Oil filters, air filters, fuel filters', image: 'Filters' },
+    { name: 'Brake System', description: 'Brake pads, rotors, brake fluid', image: 'Brakes' },
+    { name: 'Battery', description: 'Car batteries and accessories', image: 'Battery' },
+    { name: 'Tires', description: 'Car tires and wheels', image: 'Tires' },
   ],
   products: [
     {
