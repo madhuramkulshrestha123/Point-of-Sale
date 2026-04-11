@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 /**
  * Export Payments Report as PDF
@@ -135,7 +135,7 @@ export const exportPaymentsPDF = async (data, summary, filters) => {
     ];
   });
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: yPos,
     head: [[
       'Invoice #',
@@ -193,7 +193,7 @@ export const exportPaymentsPDF = async (data, summary, filters) => {
       ['Profit Margin', `${summary.profitMargin || 0}%`],
     ];
 
-    doc.autoTable({
+    autoTable(doc, {
       startY: yPos,
       body: businessData,
       styles: {
