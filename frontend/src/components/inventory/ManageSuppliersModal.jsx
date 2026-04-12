@@ -279,13 +279,17 @@ const ManageSuppliersModal = ({ isOpen, onClose, onSuccess }) => {
                   <div>
                     <p className="text-xs text-gray-500 mb-0.5">Address</p>
                     <p className="text-sm font-medium text-gray-800">
-                      {selectedSupplier.address ? 
-                        `${selectedSupplier.address.street || ''} ${selectedSupplier.address.city || ''}, ${selectedSupplier.address.state || ''} ${selectedSupplier.address.zipCode || ''}`.trim()
+                      {selectedSupplier.address && 
+                       (selectedSupplier.address.street || 
+                        selectedSupplier.address.city || 
+                        selectedSupplier.address.state || 
+                        selectedSupplier.address.zipCode) ? 
+                        `${selectedSupplier.address.street || ''} ${selectedSupplier.address.city || ''}, ${selectedSupplier.address.state || ''} ${selectedSupplier.address.zipCode || ''}`.trim().replace(/^,\s*|,\s*$/g, '')
                         : 'N/A'}
                     </p>
                   </div>
 
-                  {selectedSupplier.gstin && (
+                  {selectedSupplier.gstin && selectedSupplier.gstin.trim() !== '' && (
                     <div>
                       <p className="text-xs text-gray-500 mb-0.5">GST Number</p>
                       <p className="text-sm font-mono font-medium text-gray-800">
