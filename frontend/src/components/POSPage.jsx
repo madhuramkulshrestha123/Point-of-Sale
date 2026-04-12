@@ -17,6 +17,7 @@ import PaymentsHistoryPage from './PaymentsHistoryPage';
 import EmployeePage from '../pages/EmployeePage';
 import CRMPage from '../pages/CRMPage';
 import MultiStoreManagementPage from '../pages/MultiStoreManagementPage';
+import IntegrationsPage from '../pages/IntegrationsPage';
 import usePOSStore from '../store/posStore';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -571,6 +572,10 @@ const POSPage = ({ user, onLogout }) => {
       ) : activeMenu === 'multistore' ? (
         <div className="flex-1 overflow-hidden pb-16 md:pb-0">
           <MultiStoreManagementPage />
+        </div>
+      ) : activeMenu === 'integrations' ? (
+        <div className="flex-1 overflow-hidden pb-16 md:pb-0">
+          <IntegrationsPage />
         </div>
       ) : null}
     </div>
