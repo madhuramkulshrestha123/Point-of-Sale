@@ -64,7 +64,7 @@ const ProductGrid = ({ products, categories = [], selectedCategory, searchQuery,
           
           {searchQuery && (
             <div className="hidden md:block text-xs text-gray-600 bg-blue-50 px-2 py-1 rounded-lg border border-blue-100 truncate max-w-[120px] md:max-w-none">
-               "{searchQuery}"
+              🔍 "{searchQuery}"
             </div>
           )}
         </div>
