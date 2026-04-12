@@ -53,6 +53,9 @@ const ManageSuppliersModal = ({ isOpen, onClose, onSuccess }) => {
     } else {
       const supplier = suppliers.find(s => s._id === value);
       if (supplier) {
+        console.log('Selected supplier data:', supplier);
+        console.log('Address field:', supplier.address);
+        console.log('GST field:', supplier.gstin);
         setSelectedSupplier(supplier);
         setFormData({
           name: supplier.name,
@@ -279,17 +282,34 @@ const ManageSuppliersModal = ({ isOpen, onClose, onSuccess }) => {
                   <div>
                     <p className="text-xs text-gray-500 mb-0.5">Address</p>
                     <p className="text-sm font-medium text-gray-800">
-                      {selectedSupplier.address && 
-                       (selectedSupplier.address.street || 
-                        selectedSupplier.address.city || 
-                        selectedSupplier.address.state || 
-                        selectedSupplier.address.zipCode) ? 
-                        `${selectedSupplier.address.street || ''} ${selectedSupplier.address.city || ''}, ${selectedSupplier.address.state || ''} ${selectedSupplier.address.zipCode || ''}`.trim().replace(/^,\s*|,\s*$/g, '')
-                        : 'N/A'}
+                      {(() => {
+                        const addr = selectedSupplier.address;
+                        // Check if address is a string
+                        if (typeof addr === 'string' && addr.trim() !== '') {
+                          return addr;
+                        }
+                        // Check if address is an object with fields
+                        if (addr && typeof addr === 'object') {
+                          const parts = [
+                            addr.street,
+                            addr.city,
+                            addr.state,
+                            addr.zipCode
+                          ].filter(p => p && p.trim() !== '');
+                          
+                          if (parts.length > 0) {
+                            return parts.join(', ');
+                          }
+                        }
+                        return 'N/A';
+                      })()}
                     </p>
                   </div>
 
-                  {selectedSupplier.gstin && selectedSupplier.gstin.trim() !== '' && (
+                  {(() => {
+                    const gst = selectedSupplier.gstin;
+                    return gst && typeof gst === 'string' && gst.trim() !== '';
+                  })() && (
                     <div>
                       <p className="text-xs text-gray-500 mb-0.5">GST Number</p>
                       <p className="text-sm font-mono font-medium text-gray-800">
