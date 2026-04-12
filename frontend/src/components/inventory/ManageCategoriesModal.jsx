@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import PinVerificationModal from '../PinVerificationModal';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
@@ -28,6 +29,8 @@ const ManageCategoriesModal = ({ isOpen, onClose, onSuccess }) => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -62,6 +65,8 @@ const ManageCategoriesModal = ({ isOpen, onClose, onSuccess }) => {
     setDeleteError('');
     setShowUploadModal(false);
     setSelectedFile(null);
+    setShowPinModal(false);
+    setPendingDelete(false);
   };
 
   const handleCategorySelect = (e) => {
@@ -164,6 +169,12 @@ const ManageCategoriesModal = ({ isOpen, onClose, onSuccess }) => {
   };
 
   const handleDeleteCategory = async () => {
+    // Show PIN verification modal
+    setPendingDelete(true);
+    setShowPinModal(true);
+  };
+
+  const handlePinVerified = async () => {
     try {
       setLoading(true);
       setDeleteError('');
@@ -177,6 +188,8 @@ const ManageCategoriesModal = ({ isOpen, onClose, onSuccess }) => {
         await fetchCategories();
         resetForm();
         setShowDeleteConfirm(false);
+        setShowPinModal(false);
+        setPendingDelete(false);
       }
     } catch (err) {
       console.error('Error deleting category:', err);
@@ -563,6 +576,20 @@ const ManageCategoriesModal = ({ isOpen, onClose, onSuccess }) => {
           )}
         </div>
       </div>
+
+      {/* PIN Verification Modal */}
+      {showPinModal && (
+        <PinVerificationModal
+          isOpen={showPinModal}
+          onClose={() => {
+            setShowPinModal(false);
+            setPendingDelete(false);
+          }}
+          onSuccess={handlePinVerified}
+          actionType="category"
+          itemName={selectedCategory?.name}
+        />
+      )}
 
       {/* Image Upload Modal Overlay */}
       {showUploadModal && (

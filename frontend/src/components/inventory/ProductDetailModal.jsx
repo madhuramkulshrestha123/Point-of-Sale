@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import PinVerificationModal from '../PinVerificationModal';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -57,6 +58,8 @@ const ProductDetailModal = ({ isOpen, onClose, product, onUpdate }) => {
 
   // Delete confirmation state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState(false);
 
   // Initialize edit data when product changes - MUST be before early return
   React.useEffect(() => {
@@ -88,6 +91,9 @@ const ProductDetailModal = ({ isOpen, onClose, product, onUpdate }) => {
     setError('');
     setSuccess('');
     setShowEditModal(false);
+    setShowDeleteModal(false);
+    setShowPinModal(false);
+    setPendingDelete(false);
     setEditData(null);
   };
 
@@ -173,6 +179,12 @@ const ProductDetailModal = ({ isOpen, onClose, product, onUpdate }) => {
   };
 
   const handleDeleteProduct = async () => {
+    // Show PIN verification modal
+    setPendingDelete(true);
+    setShowPinModal(true);
+  };
+
+  const handlePinVerified = async () => {
     setLoading(true);
     setError('');
     
@@ -189,6 +201,8 @@ const ProductDetailModal = ({ isOpen, onClose, product, onUpdate }) => {
         setSuccess('Product deleted successfully!');
         setTimeout(() => {
           setShowDeleteModal(false);
+          setShowPinModal(false);
+          setPendingDelete(false);
           onClose(); // Close the main modal
         }, 1500);
       }
@@ -951,6 +965,20 @@ const ProductDetailModal = ({ isOpen, onClose, product, onUpdate }) => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* PIN Verification Modal */}
+      {showPinModal && (
+        <PinVerificationModal
+          isOpen={showPinModal}
+          onClose={() => {
+            setShowPinModal(false);
+            setPendingDelete(false);
+          }}
+          onSuccess={handlePinVerified}
+          actionType="product"
+          itemName={product?.name}
+        />
       )}
     </div>
   );

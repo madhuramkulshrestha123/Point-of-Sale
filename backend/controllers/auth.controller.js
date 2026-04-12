@@ -280,6 +280,54 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
+// @desc    Verify PIN for sensitive operations
+// @route   POST /api/auth/verify-pin
+// @access  Private
+exports.verifyPin = async (req, res) => {
+  try {
+    const { pin } = req.body;
+
+    // Validate PIN is 4 digits
+    if (!pin || !/^\d{4}$/.test(pin)) {
+      return res.status(400).json({
+        success: false,
+        message: 'PIN must be exactly 4 digits',
+      });
+    }
+
+    const user = await User.findById(req.user._id).select('+pin');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    // Verify PIN
+    const isMatch = await user.comparePin(pin);
+
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Incorrect PIN',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'PIN verified successfully',
+    });
+  } catch (error) {
+    console.error('Verify PIN error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error verifying PIN',
+      error: error.message,
+    });
+  }
+};
+
 // @desc    Change PIN
 // @route   PUT /api/auth/change-pin
 // @access  Private

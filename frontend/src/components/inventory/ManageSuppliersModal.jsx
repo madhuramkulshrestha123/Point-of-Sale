@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import PinVerificationModal from '../PinVerificationModal';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -9,6 +10,8 @@ const ManageSuppliersModal = ({ isOpen, onClose, onSuccess }) => {
   const [mode, setMode] = useState('select'); // select, view, edit, add
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     contactPerson: '',
@@ -125,6 +128,12 @@ const ManageSuppliersModal = ({ isOpen, onClose, onSuccess }) => {
   };
 
   const handleDeleteSupplier = async () => {
+    // Show PIN verification modal
+    setPendingDelete(true);
+    setShowPinModal(true);
+  };
+
+  const handlePinVerified = async () => {
     setLoading(true);
     setError('');
 
@@ -139,6 +148,8 @@ const ManageSuppliersModal = ({ isOpen, onClose, onSuccess }) => {
         setSelectedSupplier(null);
         setMode('select');
         setShowDeleteConfirm(false);
+        setShowPinModal(false);
+        setPendingDelete(false);
         onSuccess && onSuccess(null);
       }
     } catch (err) {
@@ -160,6 +171,8 @@ const ManageSuppliersModal = ({ isOpen, onClose, onSuccess }) => {
       gstNumber: '',
     });
     setError('');
+    setShowPinModal(false);
+    setPendingDelete(false);
   };
 
   const handleEditClick = () => {
@@ -460,6 +473,20 @@ const ManageSuppliersModal = ({ isOpen, onClose, onSuccess }) => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* PIN Verification Modal */}
+      {showPinModal && (
+        <PinVerificationModal
+          isOpen={showPinModal}
+          onClose={() => {
+            setShowPinModal(false);
+            setPendingDelete(false);
+          }}
+          onSuccess={handlePinVerified}
+          actionType="supplier"
+          itemName={selectedSupplier?.name}
+        />
       )}
     </div>
   );
