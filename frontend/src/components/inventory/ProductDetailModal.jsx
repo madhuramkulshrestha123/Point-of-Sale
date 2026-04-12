@@ -44,6 +44,7 @@ const ProductDetailModal = ({ isOpen, onClose, product, onUpdate }) => {
   
   // Edit states
   const [editData, setEditData] = useState(null);
+  const [suppliers, setSuppliers] = useState([]);
   
   // Dispose reasons
   const disposeReasons = [
@@ -78,9 +79,31 @@ const ProductDetailModal = ({ isOpen, onClose, product, onUpdate }) => {
         gstRate: product.gstRate || 18,
         stockQuantity: product.stockQuantity || 0,
         vehicleCompatibility: product.vehicleCompatibility || [],
+        supplier: product.supplier || '',
       });
     }
   }, [product]);
+
+  // Fetch suppliers when edit modal opens
+  React.useEffect(() => {
+    if (showEditModal) {
+      fetchSuppliers();
+    }
+  }, [showEditModal]);
+
+  const fetchSuppliers = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/suppliers`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.success) {
+        setSuppliers(response.data.data.suppliers);
+      }
+    } catch (err) {
+      console.error('Error fetching suppliers:', err);
+    }
+  };
 
   // Early return AFTER all hooks
   if (!isOpen || !product) return null;
@@ -95,6 +118,7 @@ const ProductDetailModal = ({ isOpen, onClose, product, onUpdate }) => {
     setShowPinModal(false);
     setPendingDelete(false);
     setEditData(null);
+    setSuppliers([]);
   };
 
   const handleStockUpdate = async (e) => {
@@ -831,6 +855,21 @@ const ProductDetailModal = ({ isOpen, onClose, product, onUpdate }) => {
                       <option value="batteries">Batteries</option>
                       <option value="spark-plugs">Spark Plugs</option>
                       <option value="accessories">Accessories</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
+                    <select
+                      value={editData.supplier || ''}
+                      onChange={(e) => setEditData({ ...editData, supplier: e.target.value || null })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">No Supplier</option>
+                      {suppliers.map((supplier) => (
+                        <option key={supplier._id} value={supplier._id}>
+                          {supplier.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div>

@@ -64,7 +64,7 @@ const ProductGrid = ({ products, categories = [], selectedCategory, searchQuery,
           
           {searchQuery && (
             <div className="hidden md:block text-xs text-gray-600 bg-blue-50 px-2 py-1 rounded-lg border border-blue-100 truncate max-w-[120px] md:max-w-none">
-              🔍 "{searchQuery}"
+               "{searchQuery}"
             </div>
           )}
         </div>
@@ -75,7 +75,6 @@ const ProductGrid = ({ products, categories = [], selectedCategory, searchQuery,
         {filteredProducts.length === 0 ? (
           <div className="h-full flex items-center justify-center">
             <div className="text-center text-gray-400">
-              <div className="text-5xl mb-3 opacity-50 md:text-6xl">🔍</div>
               <p className="text-sm font-medium text-gray-600 md:text-base">No products found</p>
               <p className="text-xs mt-1 text-gray-500 md:text-sm">Try a different search or category</p>
             </div>
