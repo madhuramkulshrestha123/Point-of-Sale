@@ -23,7 +23,7 @@ const NavigationSidebar = ({ onMenuClick, activeMenu, user, onLogout }) => {
         <div className="flex items-center justify-between">
           {!isCollapsed && (
             <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-              <span className="text-2xl">⚙️</span>
+              <img src="/logo/pos_logo.png" alt="POS Logo" className="w-10 h-10 object-contain" />
               {user?.businessName || 'AutoParts'}
             </h1>
           )}
