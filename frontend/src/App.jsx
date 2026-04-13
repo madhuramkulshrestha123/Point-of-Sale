@@ -30,6 +30,39 @@ function App() {
         setUser(null);
       }
     }
+
+    // Listen for storage changes (in case user data is updated in another tab or component)
+    const handleStorageChange = () => {
+      const updatedUser = localStorage.getItem('user');
+      if (updatedUser) {
+        try {
+          setUser(JSON.parse(updatedUser));
+        } catch (error) {
+          console.error('Failed to parse updated user data:', error);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Create a custom event listener for profile updates
+    const handleProfileUpdate = () => {
+      const updatedUser = localStorage.getItem('user');
+      if (updatedUser) {
+        try {
+          setUser(JSON.parse(updatedUser));
+        } catch (error) {
+          console.error('Failed to parse updated user data:', error);
+        }
+      }
+    };
+
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('profileUpdated', handleProfileUpdate);
+    };
   }, []);
 
   const handleLogout = () => {
@@ -37,6 +70,17 @@ function App() {
     localStorage.removeItem('user');
     setIsAuthenticated(false);
     setUser(null);
+  };
+
+  const refreshUserData = () => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        setUser(JSON.parse(userData));
+      } catch (error) {
+        console.error('Failed to refresh user data:', error);
+      }
+    }
   };
 
   if (!isAuthenticated) {
@@ -60,7 +104,7 @@ function App() {
           )
         ) : (
           <Routes>
-            <Route path="/" element={<POSPage user={user} onLogout={handleLogout} />} />
+            <Route path="/" element={<POSPage user={user} onLogout={handleLogout} onRefreshUser={refreshUserData} />} />
             <Route path="/payment" element={<PaymentPage />} />
             <Route path="/employees" element={<EmployeePage />} />
           </Routes>

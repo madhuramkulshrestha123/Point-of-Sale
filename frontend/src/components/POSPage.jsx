@@ -32,7 +32,7 @@ const categoryMap = {
   'accessories': 'Accessories',
 };
 
-const POSPage = ({ user, onLogout }) => {
+const POSPage = ({ user, onLogout, onRefreshUser }) => {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState('pos');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -546,6 +546,12 @@ const POSPage = ({ user, onLogout }) => {
             onUpdate={(updatedUser) => {
               // Update localStorage with new user data
               localStorage.setItem('user', JSON.stringify(updatedUser));
+              // Trigger custom event to notify App.jsx
+              window.dispatchEvent(new Event('profileUpdated'));
+              // Also call the refresh function from App.jsx
+              if (onRefreshUser) {
+                onRefreshUser();
+              }
             }}
           />
         </>
