@@ -48,7 +48,7 @@ exports.register = async (req, res) => {
       phone,
       pin,
       gstNumber,
-      upiId,
+      upiId: upiId || undefined,
       currency: currency || 'INR',
       address,
       role: 'admin',
@@ -242,7 +242,7 @@ exports.updateProfile = async (req, res) => {
     if (email) user.email = email;
     if (phone) user.phone = phone;
     if (gstNumber !== undefined) user.gstNumber = gstNumber;
-    if (upiId !== undefined) user.upiId = upiId;
+    if (upiId !== undefined) user.upiId = upiId || undefined;
     if (currency) user.currency = currency;
     if (address) user.address = address;
     if (logo !== undefined) user.logo = logo;

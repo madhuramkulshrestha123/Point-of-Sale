@@ -61,7 +61,7 @@ const Register = ({ onSwitchToLogin }) => {
         phone: formData.phone,
         pin: formData.pin,
         gstNumber: formData.gstNumber ? formData.gstNumber.toUpperCase() : undefined,
-        upiId: formData.upiId,
+        upiId: formData.upiId ? formData.upiId.trim() : undefined,
         currency: formData.currency,
         address: {
           street: formData.street,

@@ -28,6 +28,23 @@ const ProfileModal = ({ user, isOpen, onClose, onUpdate }) => {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Update form data when user prop changes
+  useEffect(() => {
+    setFormData({
+      businessName: user.businessName || '',
+      ownerName: user.ownerName || '',
+      email: user.email || '',
+      phone: user.phone || '',
+      street: user.address?.street || '',
+      city: user.address?.city || '',
+      state: user.address?.state || '',
+      zipCode: user.address?.zipCode || '',
+      gstNumber: user.gstNumber || '',
+      upiId: user.upiId || '',
+      currency: user.currency || 'INR',
+    });
+  }, [user]);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -66,7 +83,7 @@ const ProfileModal = ({ user, isOpen, onClose, onUpdate }) => {
           email: formData.email,
           phone: formData.phone,
           gstNumber: formData.gstNumber ? formData.gstNumber.toUpperCase() : undefined,
-          upiId: formData.upiId,
+          upiId: formData.upiId ? formData.upiId.trim() : undefined,
           currency: formData.currency,
           address: {
             street: formData.street,
@@ -211,7 +228,7 @@ const ProfileModal = ({ user, isOpen, onClose, onUpdate }) => {
                     </div>
                     <div>
                       <label className="text-sm text-gray-600">UPI ID</label>
-                      <p className="font-medium text-gray-900">{user.upiId || 'Not Set'}</p>
+                      <p className="font-medium text-gray-900">{user.upiId || 'Not configured'}</p>
                     </div>
                     <div>
                       <label className="text-sm text-gray-600">Currency</label>
