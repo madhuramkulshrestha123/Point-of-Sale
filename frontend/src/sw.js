@@ -46,7 +46,7 @@ registerRoute(
   })
 )
 
-// Cache images
+// Cache images (including logo)
 registerRoute(
   /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
   new CacheFirst({
@@ -56,6 +56,21 @@ registerRoute(
       new ExpirationPlugin({ 
         maxEntries: 100, 
         maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+      })
+    ]
+  })
+)
+
+// Cache logo and other static assets
+registerRoute(
+  /\/(?:logo|imgs)\/.*\.(?:png|jpg|jpeg|svg|gif|webp)$/,
+  new CacheFirst({
+    cacheName: 'pos-static-assets-cache',
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+      new ExpirationPlugin({ 
+        maxEntries: 50, 
+        maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
       })
     ]
   })
