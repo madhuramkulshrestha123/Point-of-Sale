@@ -13,7 +13,7 @@ const generateToken = (id) => {
 // @access  Public
 exports.register = async (req, res) => {
   try {
-    const { businessName, ownerName, email, phone, pin, gstNumber, currency, address } = req.body;
+    const { businessName, ownerName, email, phone, pin, gstNumber, upiId, currency, address } = req.body;
 
     // Validate PIN is 4 digits
     if (!pin || !/^\d{4}$/.test(pin)) {
@@ -48,6 +48,7 @@ exports.register = async (req, res) => {
       phone,
       pin,
       gstNumber,
+      upiId,
       currency: currency || 'INR',
       address,
       role: 'admin',
@@ -70,6 +71,7 @@ exports.register = async (req, res) => {
           role: user.role,
           address: user.address,
           gstNumber: user.gstNumber,
+          upiId: user.upiId,
           currency: user.currency,
         },
         token,
@@ -195,6 +197,7 @@ exports.getMe = async (req, res) => {
           logo: user.logo,
           store: user.store,
           gstNumber: user.gstNumber,
+          upiId: user.upiId,
           currency: user.currency,
         },
       },
@@ -214,7 +217,7 @@ exports.getMe = async (req, res) => {
 // @access  Private
 exports.updateProfile = async (req, res) => {
   try {
-    const { businessName, ownerName, email, phone, gstNumber, currency, address, logo } = req.body;
+    const { businessName, ownerName, email, phone, gstNumber, upiId, currency, address, logo } = req.body;
 
     const user = await User.findById(req.user._id);
 
@@ -239,6 +242,7 @@ exports.updateProfile = async (req, res) => {
     if (email) user.email = email;
     if (phone) user.phone = phone;
     if (gstNumber !== undefined) user.gstNumber = gstNumber;
+    if (upiId !== undefined) user.upiId = upiId;
     if (currency) user.currency = currency;
     if (address) user.address = address;
     if (logo !== undefined) user.logo = logo;
@@ -260,6 +264,7 @@ exports.updateProfile = async (req, res) => {
           address: user.address,
           logo: user.logo,
           gstNumber: user.gstNumber,
+          upiId: user.upiId,
           currency: user.currency,
         },
       },

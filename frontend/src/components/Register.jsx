@@ -16,6 +16,7 @@ const Register = ({ onSwitchToLogin }) => {
     state: '',
     zipCode: '',
     gstNumber: '',
+    upiId: '',
     currency: 'INR',
   });
   const [error, setError] = useState('');
@@ -60,6 +61,7 @@ const Register = ({ onSwitchToLogin }) => {
         phone: formData.phone,
         pin: formData.pin,
         gstNumber: formData.gstNumber ? formData.gstNumber.toUpperCase() : undefined,
+        upiId: formData.upiId,
         currency: formData.currency,
         address: {
           street: formData.street,
@@ -222,22 +224,36 @@ const Register = ({ onSwitchToLogin }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Currency <span className="text-red-500">*</span>
+                UPI ID <span className="text-xs text-gray-500">(Optional)</span>
               </label>
-              <select
-                name="currency"
-                value={formData.currency}
+              <input
+                type="text"
+                name="upiId"
+                value={formData.upiId}
                 onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              >
-                <option value="INR">INR - Indian Rupee (₹)</option>
-                <option value="USD">USD - US Dollar ($)</option>
-                <option value="EUR">EUR - Euro (€)</option>
-                <option value="GBP">GBP - British Pound (£)</option>
-                <option value="AED">AED - UAE Dirham (د.إ)</option>
-              </select>
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent lowercase"
+                placeholder="e.g., yourname@upi"
+              />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Currency <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="currency"
+              value={formData.currency}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option value="INR">INR - Indian Rupee (₹)</option>
+              <option value="USD">USD - US Dollar ($)</option>
+              <option value="EUR">EUR - Euro (€)</option>
+              <option value="GBP">GBP - British Pound (£)</option>
+              <option value="AED">AED - UAE Dirham (د.إ)</option>
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

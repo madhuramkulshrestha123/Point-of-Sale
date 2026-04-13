@@ -65,6 +65,11 @@ const userSchema = new mongoose.Schema({
     trim: true,
     match: [/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[A-Z0-9]{1}[Z]{1}[A-Z0-9]{1}$/, 'Please provide a valid GST number'],
   },
+  upiId: {
+    type: String,
+    lowercase: true,
+    trim: true,
+  },
   currency: {
     type: String,
     default: 'INR',
