@@ -4,6 +4,7 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Register = ({ onSwitchToLogin }) => {
+  const [step, setStep] = useState(1); // Step 1: Form, Step 2: OTP Verification
   const [formData, setFormData] = useState({
     businessName: '',
     ownerName: '',
@@ -19,8 +20,11 @@ const Register = ({ onSwitchToLogin }) => {
     upiId: '',
     currency: 'INR',
   });
+  const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
 
   const handleChange = (e) => {
     setFormData({
@@ -30,18 +34,72 @@ const Register = ({ onSwitchToLogin }) => {
     setError('');
   };
 
-  const handleSubmit = async (e) => {
+  const handleOtpChange = (e) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+    setOtp(value);
+    setError('');
+  };
+
+  const handleSendOTP = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Validation
-    if (formData.pin.length !== 4 || !/^\d+$/.test(formData.pin)) {
-      setError('PIN must be exactly 4 digits');
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email || !emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address');
       return;
     }
 
+    setLoading(true);
+
+    try {
+      const response = await axios.post(`${API_URL}/auth/send-otp`, {
+        email: formData.email,
+      });
+
+      if (response.data.success) {
+        setSuccess('OTP sent to your email!');
+        setStep(2);
+        setResendTimer(60); // 60 seconds cooldown
+        
+        // Start resend timer
+        const timer = setInterval(() => {
+          setResendTimer((prev) => {
+            if (prev <= 1) {
+              clearInterval(timer);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to send OTP. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    // Validate OTP
+    if (otp.length !== 6 || !/^\d+$/.test(otp)) {
+      setError('OTP must be 6 digits');
+      return;
+    }
+
+    // Validate PIN match
     if (formData.pin !== formData.confirmPassword) {
       setError('PINs do not match');
+      return;
+    }
+
+    // Validate PIN format
+    if (formData.pin.length !== 4 || !/^\d+$/.test(formData.pin)) {
+      setError('PIN must be exactly 4 digits');
       return;
     }
 
@@ -54,10 +112,11 @@ const Register = ({ onSwitchToLogin }) => {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API_URL}/auth/register`, {
+      const response = await axios.post(`${API_URL}/auth/verify-otp-and-register`, {
+        email: formData.email,
+        otp: otp,
         businessName: formData.businessName,
         ownerName: formData.ownerName,
-        email: formData.email,
         phone: formData.phone,
         pin: formData.pin,
         gstNumber: formData.gstNumber ? formData.gstNumber.toUpperCase() : undefined,
@@ -73,17 +132,62 @@ const Register = ({ onSwitchToLogin }) => {
 
       if (response.data.success) {
         // Save token and user data
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        localStorage.setItem('token', response.data.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.data.user));
         
         // Reload to use authenticated app
         window.location.reload();
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      setError(err.response?.data?.message || 'Verification failed. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleResendOTP = async () => {
+    if (resendTimer > 0) return;
+    
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await axios.post(`${API_URL}/auth/send-otp`, {
+        email: formData.email,
+      });
+
+      if (response.data.success) {
+        setSuccess('OTP resent to your email!');
+        setResendTimer(60);
+        
+        const timer = setInterval(() => {
+          setResendTimer((prev) => {
+            if (prev <= 1) {
+              clearInterval(timer);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to resend OTP.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Validate PIN match
+    if (formData.pin !== formData.confirmPassword) {
+      setError('PINs do not match');
+      return;
+    }
+    
+    // Send OTP
+    handleSendOTP(e);
   };
 
   return (
@@ -102,6 +206,14 @@ const Register = ({ onSwitchToLogin }) => {
             {error}
           </div>
         )}
+
+        {success && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+            {success}
+          </div>
+        )}
+
+        {step === 1 ? (
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -297,9 +409,76 @@ const Register = ({ onSwitchToLogin }) => {
             disabled={loading}
             className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Creating Account...' : 'Register'}
+            {loading ? 'Sending OTP...' : 'Send OTP'}
           </button>
         </form>
+        ) : (
+          /* OTP Verification Step */
+          <form onSubmit={handleVerifyOTP} className="space-y-6">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Verify OTP</h2>
+              <p className="text-gray-600 text-sm">
+                We've sent a 6-digit OTP to <strong>{formData.email}</strong>
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Enter OTP *
+              </label>
+              <input
+                type="text"
+                value={otp}
+                onChange={handleOtpChange}
+                required
+                maxLength="6"
+                pattern="\d{6}"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-center text-2xl tracking-widest font-mono"
+                placeholder="000000"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || otp.length !== 6}
+              className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Verifying...' : 'Verify & Register'}
+            </button>
+
+            <div className="text-center">
+              {resendTimer > 0 ? (
+                <p className="text-sm text-gray-600">
+                  Resend OTP in <span className="font-semibold text-indigo-600">{resendTimer}s</span>
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResendOTP}
+                  disabled={loading}
+                  className="text-sm text-indigo-600 hover:text-indigo-700 font-medium disabled:opacity-50"
+                >
+                  Resend OTP
+                </button>
+              )}
+            </div>
+
+            <div className="pt-4 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="w-full text-sm text-gray-600 hover:text-gray-700 font-medium"
+              >
+                ← Back to Registration Form
+              </button>
+            </div>
+          </form>
+        )}
 
         <p className="text-center mt-6 text-gray-600">
           Already have an account?{' '}

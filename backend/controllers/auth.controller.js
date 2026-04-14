@@ -2,6 +2,8 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User.model');
 const Sale = require('../models/Sale.model');
 const Payment = require('../models/Payment.model');
+const OTP = require('../models/OTP.model');
+const { generateOTP, sendOTPEmail, sendRegistrationSuccessEmail } = require('../utils/email');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -10,12 +12,88 @@ const generateToken = (id) => {
   });
 };
 
-// @desc    Register user
-// @route   POST /api/auth/register
+// @desc    Send OTP for registration
+// @route   POST /api/auth/send-otp
 // @access  Public
-exports.register = async (req, res) => {
+exports.sendRegistrationOTP = async (req, res) => {
   try {
-    const { businessName, ownerName, email, phone, pin, gstNumber, upiId, currency, address } = req.body;
+    const { email } = req.body;
+
+    // Validate email
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address',
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'Business already exists with this email',
+      });
+    }
+
+    // Generate OTP
+    const otp = generateOTP();
+
+    // Delete any existing OTPs for this email
+    await OTP.deleteMany({ email });
+
+    // Save new OTP
+    await OTP.create({ email, otp });
+
+    // Send OTP email
+    const emailResult = await sendOTPEmail(email, otp);
+
+    if (!emailResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send OTP email. Please try again.',
+        error: emailResult.error,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'OTP sent to your email successfully. Valid for 10 minutes.',
+    });
+  } catch (error) {
+    console.error('Send OTP error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error sending OTP',
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Verify OTP and complete registration
+// @route   POST /api/auth/verify-otp-and-register
+// @access  Public
+exports.verifyOTPAndRegister = async (req, res) => {
+  try {
+    const { email, otp, businessName, ownerName, phone, pin, gstNumber, upiId, currency, address } = req.body;
+
+    // Validate OTP
+    if (!otp || !/^\d{6}$/.test(otp)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid OTP. Must be 6 digits.',
+      });
+    }
+
+    // Find OTP in database
+    const otpRecord = await OTP.findOne({ email, otp });
+
+    if (!otpRecord) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired OTP. Please request a new one.',
+      });
+    }
 
     // Validate PIN is 4 digits
     if (!pin || !/^\d{4}$/.test(pin)) {
@@ -33,9 +111,10 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Check if user already exists
+    // Check if user already exists (double-check)
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      await OTP.deleteOne({ _id: otpRecord._id });
       return res.status(400).json({
         success: false,
         message: 'Business already exists with this email',
@@ -56,8 +135,16 @@ exports.register = async (req, res) => {
       role: 'admin',
     });
 
+    // Delete the used OTP
+    await OTP.deleteOne({ _id: otpRecord._id });
+
     // Generate token
     const token = generateToken(user._id);
+
+    // Send registration success email
+    sendRegistrationSuccessEmail(email, businessName).catch(err => {
+      console.error('Failed to send registration success email:', err);
+    });
 
     res.status(201).json({
       success: true,
@@ -80,7 +167,7 @@ exports.register = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Register error:', error);
+    console.error('Verify OTP and register error:', error);
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,

@@ -1,9 +1,21 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, getMe, updateProfile, changePin, verifyPin, resetAllBillsAndPayments } = require('../controllers/auth.controller');
+const { 
+  login, 
+  getMe, 
+  updateProfile, 
+  changePin, 
+  verifyPin, 
+  resetAllBillsAndPayments,
+  sendRegistrationOTP,
+  verifyOTPAndRegister
+} = require('../controllers/auth.controller');
 const { protect } = require('../middleware/auth.middleware');
 
-router.post('/register', register);
+// Registration with OTP
+router.post('/send-otp', sendRegistrationOTP);
+router.post('/verify-otp-and-register', verifyOTPAndRegister);
+
 router.post('/login', login);
 router.get('/me', protect, getMe);
 router.put('/profile', protect, updateProfile);
