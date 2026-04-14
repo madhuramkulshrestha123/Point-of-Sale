@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User.model');
+const Sale = require('../models/Sale.model');
+const Payment = require('../models/Payment.model');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -380,6 +382,54 @@ exports.changePin = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error changing PIN',
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Reset all bills and payments (Admin only)
+// @route   DELETE /api/sales/reset-all-bills-payments
+// @access  Private (Admin only)
+exports.resetAllBillsAndPayments = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    // Check if user is admin
+    if (user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only administrators can reset bills and payments',
+      });
+    }
+
+    // Delete all payments first (since they reference sales)
+    const paymentsResult = await Payment.deleteMany({});
+    console.log(`Deleted ${paymentsResult.deletedCount} payment records`);
+
+    // Delete all sales
+    const salesResult = await Sale.deleteMany({});
+    console.log(`Deleted ${salesResult.deletedCount} sale records`);
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully reset all data. Deleted ${salesResult.deletedCount} bills and ${paymentsResult.deletedCount} payment records.`,
+      data: {
+        salesDeleted: salesResult.deletedCount,
+        paymentsDeleted: paymentsResult.deletedCount,
+      },
+    });
+  } catch (error) {
+    console.error('Reset all bills and payments error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error resetting bills and payments',
       error: error.message,
     });
   }
