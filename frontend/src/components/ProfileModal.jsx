@@ -235,266 +235,342 @@ const ProfileModal = ({ user, isOpen, onClose, onUpdate }) => {
             </div>
           )}
 
-          {!showPinChange ? (
-            <>
-              {/* Business Info Display */}
-              {!isEditing ? (
-                <div className="space-y-4 sm:space-y-6">
-                  <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-3 sm:space-y-0 sm:space-x-4">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-2xl sm:text-3xl font-bold">
-                        {user.businessName?.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="text-center sm:text-left">
-                      <h3 className="text-lg sm:text-xl font-bold text-gray-900">{user.businessName}</h3>
-                      <p className="text-sm sm:text-base text-gray-600">ID: {user.businessId}</p>
-                      <p className="text-xs sm:text-sm text-gray-500">{user.role}</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <div>
-                      <label className="text-xs sm:text-sm text-gray-600">Owner Name</label>
-                      <p className="font-medium text-gray-900 text-sm sm:text-base">{user.ownerName}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs sm:text-sm text-gray-600">Email</label>
-                      <p className="font-medium text-gray-900 text-sm sm:text-base break-all">{user.email}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs sm:text-sm text-gray-600">Phone</label>
-                      <p className="font-medium text-gray-900 text-sm sm:text-base">{user.phone}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs sm:text-sm text-gray-600">GST Number</label>
-                      <p className="font-medium text-gray-900 text-sm sm:text-base">{user.gstNumber || 'Not Set'}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs sm:text-sm text-gray-600">UPI ID</label>
-                      <p className="font-medium text-gray-900 text-sm sm:text-base break-all">{user.upiId || 'Not configured'}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs sm:text-sm text-gray-600">Currency</label>
-                      <p className="font-medium text-gray-900 text-sm sm:text-base">
-                        {user.currency === 'INR' && '₹ INR - Indian Rupee'}
-                        {user.currency === 'USD' && '$ USD - US Dollar'}
-                        {user.currency === 'EUR' && '€ EUR - Euro'}
-                        {user.currency === 'GBP' && '£ GBP - British Pound'}
-                        {user.currency === 'AED' && 'د.إ AED - UAE Dirham'}
-                        {!user.currency && '₹ INR - Indian Rupee'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {user.address && (
-                    <div>
-                      <label className="text-xs sm:text-sm text-gray-600">Address</label>
-                      <p className="font-medium text-gray-900 text-sm sm:text-base">
-                        {[user.address.street, user.address.city, user.address.state, user.address.zipCode]
-                          .filter(Boolean)
-                          .join(', ')}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-2 sm:pt-4">
-                    <button
-                      onClick={() => setIsEditing(true)}
-                      className="flex-1 bg-indigo-600 text-white py-2.5 sm:py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm sm:text-base font-medium"
-                    >
-                      Edit Profile
-                    </button>
-                    <button
-                      onClick={() => setShowPinChange(true)}
-                      className="flex-1 border border-gray-300 text-gray-700 py-2.5 sm:py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base font-medium"
-                    >
-                      Change PIN
-                    </button>
-                  </div>
-                  
-                  {user.role === 'admin' && (
-                    <div className="pt-2">
-                      <button
-                        onClick={() => setShowResetData(true)}
-                        className="w-full bg-red-600 text-white py-2.5 sm:py-2 rounded-lg hover:bg-red-700 transition-colors text-sm sm:text-base font-medium flex items-center justify-center gap-2"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        Reset All Bills & Payments
-                      </button>
-                    </div>
-                  )}
+          {/* Business Info Display - Only shown when not editing, not changing PIN, not resetting data */}
+          {!isEditing && !showPinChange && !showResetData && (
+            <div className="space-y-4 sm:space-y-6">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-3 sm:space-y-0 sm:space-x-4">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-white text-2xl sm:text-3xl font-bold">
+                    {user.businessName?.charAt(0).toUpperCase()}
+                  </span>
                 </div>
-              ) : (
-                /* Edit Form */
-                <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                      Business Name
-                    </label>
-                    <input
-                      type="text"
-                      name="businessName"
-                      value={formData.businessName}
-                      onChange={handleChange}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                    />
-                  </div>
+                <div className="text-center sm:text-left">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900">{user.businessName}</h3>
+                  <p className="text-sm sm:text-base text-gray-600">ID: {user.businessId}</p>
+                  <p className="text-xs sm:text-sm text-gray-500">{user.role}</p>
+                </div>
+              </div>
 
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                      Owner Name
-                    </label>
-                    <input
-                      type="text"
-                      name="ownerName"
-                      value={formData.ownerName}
-                      onChange={handleChange}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                    />
-                  </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <label className="text-xs sm:text-sm text-gray-600">Owner Name</label>
+                  <p className="font-medium text-gray-900 text-sm sm:text-base">{user.ownerName}</p>
+                </div>
+                <div>
+                  <label className="text-xs sm:text-sm text-gray-600">Email</label>
+                  <p className="font-medium text-gray-900 text-sm sm:text-base break-all">{user.email}</p>
+                </div>
+                <div>
+                  <label className="text-xs sm:text-sm text-gray-600">Phone</label>
+                  <p className="font-medium text-gray-900 text-sm sm:text-base">{user.phone}</p>
+                </div>
+                <div>
+                  <label className="text-xs sm:text-sm text-gray-600">GST Number</label>
+                  <p className="font-medium text-gray-900 text-sm sm:text-base">{user.gstNumber || 'Not Set'}</p>
+                </div>
+                <div>
+                  <label className="text-xs sm:text-sm text-gray-600">UPI ID</label>
+                  <p className="font-medium text-gray-900 text-sm sm:text-base break-all">{user.upiId || 'Not configured'}</p>
+                </div>
+                <div>
+                  <label className="text-xs sm:text-sm text-gray-600">Currency</label>
+                  <p className="font-medium text-gray-900 text-sm sm:text-base">
+                    {user.currency === 'INR' && '₹ INR - Indian Rupee'}
+                    {user.currency === 'USD' && '$ USD - US Dollar'}
+                    {user.currency === 'EUR' && '€ EUR - Euro'}
+                    {user.currency === 'GBP' && '£ GBP - British Pound'}
+                    {user.currency === 'AED' && 'د.إ AED - UAE Dirham'}
+                    {!user.currency && '₹ INR - Indian Rupee'}
+                  </p>
+                </div>
+              </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                        GST Number <span className="text-xs text-gray-500">(Optional)</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="gstNumber"
-                        value={formData.gstNumber}
-                        onChange={handleChange}
-                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 uppercase"
-                        placeholder="27AABCU9603R1ZM"
-                        maxLength="15"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                        UPI ID <span className="text-xs text-gray-500">(Optional)</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="upiId"
-                        value={formData.upiId}
-                        onChange={handleChange}
-                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 lowercase"
-                        placeholder="yourname@upi"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                      Currency <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      name="currency"
-                      value={formData.currency}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                    >
-                      <option value="INR">INR - Indian Rupee (₹)</option>
-                      <option value="USD">USD - US Dollar ($)</option>
-                      <option value="EUR">EUR - Euro (€)</option>
-                      <option value="GBP">GBP - British Pound (£)</option>
-                      <option value="AED">AED - UAE Dirham (د.إ)</option>
-                    </select>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                        Phone
-                      </label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                      Address
-                    </label>
-                    <input
-                      type="text"
-                      name="street"
-                      value={formData.street}
-                      onChange={handleChange}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 mb-2"
-                      placeholder="Street"
-                    />
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      <input
-                        type="text"
-                        name="city"
-                        value={formData.city}
-                        onChange={handleChange}
-                        className="px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                        placeholder="City"
-                      />
-                      <input
-                        type="text"
-                        name="state"
-                        value={formData.state}
-                        onChange={handleChange}
-                        className="px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                        placeholder="State"
-                      />
-                      <input
-                        type="text"
-                        name="zipCode"
-                        value={formData.zipCode}
-                        onChange={handleChange}
-                        className="px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                        placeholder="ZIP"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-3 sm:pt-4">
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="flex-1 bg-indigo-600 text-white py-2.5 sm:py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 text-sm sm:text-base font-medium"
-                    >
-                      {loading ? 'Saving...' : 'Save Changes'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsEditing(false)}
-                      className="flex-1 border border-gray-300 text-gray-700 py-2.5 sm:py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base font-medium"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
+              {user.address && (
+                <div>
+                  <label className="text-xs sm:text-sm text-gray-600">Address</label>
+                  <p className="font-medium text-gray-900 text-sm sm:text-base">
+                    {[user.address.street, user.address.city, user.address.state, user.address.zipCode]
+                      .filter(Boolean)
+                      .join(', ')}
+                  </p>
+                </div>
               )}
-            </>
-          ) : showResetData ? (
-            /* Reset Data Confirmation Form */
+
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-2 sm:pt-4">
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="flex-1 bg-indigo-600 text-white py-2.5 sm:py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm sm:text-base font-medium"
+                >
+                  Edit Profile
+                </button>
+                <button
+                  onClick={() => setShowPinChange(true)}
+                  className="flex-1 border border-gray-300 text-gray-700 py-2.5 sm:py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base font-medium"
+                >
+                  Change PIN
+                </button>
+              </div>
+              
+              {user.role === 'admin' && (
+                <div className="pt-2">
+                  <button
+                    onClick={() => setShowResetData(true)}
+                    className="w-full bg-red-600 text-white py-2.5 sm:py-2 rounded-lg hover:bg-red-700 transition-colors text-sm sm:text-base font-medium flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Reset All Bills & Payments
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Edit Form */}
+          {isEditing && !showPinChange && !showResetData && (
+            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                  Business Name
+                </label>
+                <input
+                  type="text"
+                  name="businessName"
+                  value={formData.businessName}
+                  onChange={handleChange}
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                  Owner Name
+                </label>
+                <input
+                  type="text"
+                  name="ownerName"
+                  value={formData.ownerName}
+                  onChange={handleChange}
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    GST Number <span className="text-xs text-gray-500">(Optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="gstNumber"
+                    value={formData.gstNumber}
+                    onChange={handleChange}
+                    className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 uppercase"
+                    placeholder="27AABCU9603R1ZM"
+                    maxLength="15"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    UPI ID <span className="text-xs text-gray-500">(Optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="upiId"
+                    value={formData.upiId}
+                    onChange={handleChange}
+                    className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 lowercase"
+                    placeholder="yourname@upi"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                  Currency <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="currency"
+                  value={formData.currency}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="INR">INR - Indian Rupee (₹)</option>
+                  <option value="USD">USD - US Dollar ($)</option>
+                  <option value="EUR">EUR - Euro (€)</option>
+                  <option value="GBP">GBP - British Pound (£)</option>
+                  <option value="AED">AED - UAE Dirham (د.إ)</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  name="street"
+                  value={formData.street}
+                  onChange={handleChange}
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 mb-2"
+                  placeholder="Street"
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <input
+                    type="text"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}
+                    className="px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    placeholder="City"
+                  />
+                  <input
+                    type="text"
+                    name="state"
+                    value={formData.state}
+                    onChange={handleChange}
+                    className="px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    placeholder="State"
+                  />
+                  <input
+                    type="text"
+                    name="zipCode"
+                    value={formData.zipCode}
+                    onChange={handleChange}
+                    className="px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    placeholder="ZIP"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-3 sm:pt-4">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 bg-indigo-600 text-white py-2.5 sm:py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 text-sm sm:text-base font-medium"
+                >
+                  {loading ? 'Saving...' : 'Save Changes'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="flex-1 border border-gray-300 text-gray-700 py-2.5 sm:py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base font-medium"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Change PIN Form */}
+          {showPinChange && !showResetData && !isEditing && (
+            <form onSubmit={handlePinSubmit} className="space-y-3 sm:space-y-4">
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                  Current PIN
+                </label>
+                <input
+                  type="password"
+                  name="currentPin"
+                  value={pinData.currentPin}
+                  onChange={handlePinChange}
+                  required
+                  maxLength="4"
+                  pattern="\d{4}"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-center text-xl tracking-widest"
+                  placeholder="****"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                  New PIN
+                </label>
+                <input
+                  type="password"
+                  name="newPin"
+                  value={pinData.newPin}
+                  onChange={handlePinChange}
+                  required
+                  maxLength="4"
+                  pattern="\d{4}"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-center text-xl tracking-widest"
+                  placeholder="****"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                  Confirm New PIN
+                </label>
+                <input
+                  type="password"
+                  name="confirmPin"
+                  value={pinData.confirmPin}
+                  onChange={handlePinChange}
+                  required
+                  maxLength="4"
+                  pattern="\d{4}"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-center text-xl tracking-widest"
+                  placeholder="****"
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-3 sm:pt-4">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 bg-indigo-600 text-white py-2.5 sm:py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 text-sm sm:text-base font-medium"
+                >
+                  {loading ? 'Changing...' : 'Change PIN'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPinChange(false);
+                    setPinData({ currentPin: '', newPin: '', confirmPin: '' });
+                  }}
+                  className="flex-1 border border-gray-300 text-gray-700 py-2.5 sm:py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base font-medium"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Reset Data Confirmation Form */}
+          {showResetData && !isEditing && !showPinChange && (
             <div className="space-y-4 sm:space-y-6">
               <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4 sm:p-6">
                 <div className="flex items-start space-x-3">
@@ -575,80 +651,6 @@ const ProfileModal = ({ user, isOpen, onClose, onUpdate }) => {
                 </div>
               </form>
             </div>
-          ) : (
-            /* Change PIN Form */
-            <form onSubmit={handlePinSubmit} className="space-y-3 sm:space-y-4">
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                  Current PIN
-                </label>
-                <input
-                  type="password"
-                  name="currentPin"
-                  value={pinData.currentPin}
-                  onChange={handlePinChange}
-                  required
-                  maxLength="4"
-                  pattern="\d{4}"
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-center text-xl tracking-widest"
-                  placeholder="****"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                  New PIN
-                </label>
-                <input
-                  type="password"
-                  name="newPin"
-                  value={pinData.newPin}
-                  onChange={handlePinChange}
-                  required
-                  maxLength="4"
-                  pattern="\d{4}"
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-center text-xl tracking-widest"
-                  placeholder="****"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                  Confirm New PIN
-                </label>
-                <input
-                  type="password"
-                  name="confirmPin"
-                  value={pinData.confirmPin}
-                  onChange={handlePinChange}
-                  required
-                  maxLength="4"
-                  pattern="\d{4}"
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-center text-xl tracking-widest"
-                  placeholder="****"
-                />
-              </div>
-
-              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-3 sm:pt-4">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 bg-indigo-600 text-white py-2.5 sm:py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 text-sm sm:text-base font-medium"
-                >
-                  {loading ? 'Changing...' : 'Change PIN'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowPinChange(false);
-                    setPinData({ currentPin: '', newPin: '', confirmPin: '' });
-                  }}
-                  className="flex-1 border border-gray-300 text-gray-700 py-2.5 sm:py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base font-medium"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
           )}
         </div>
       </div>
