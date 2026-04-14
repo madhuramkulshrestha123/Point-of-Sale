@@ -24,7 +24,7 @@ const NavigationSidebar = ({ onMenuClick, activeMenu, user, onLogout }) => {
           {!isCollapsed && (
             <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
               <img src="/logo/pos_logo.png" alt="POS Logo" className="w-10 h-10 object-contain" />
-              {user?.businessName || 'AutoParts'}
+              {user?.businessName || 'POS System'}
             </h1>
           )}
           <button

@@ -3,7 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import IntegrationCard from '../components/IntegrationCard';
 import ToggleSwitch from '../components/ToggleSwitch';
 
-const IntegrationsPage = () => {
+const IntegrationsPage = ({ user }) => {
   const [settings, setSettings] = useState({
     emailAlerts: {
       enabled: false,
@@ -21,14 +21,19 @@ const IntegrationsPage = () => {
   });
 
   const [upiId, setUpiId] = useState('mkexports@upi');
-  const [businessName, setBusinessName] = useState('N.R AUTO PARTS');
+  const [businessName, setBusinessName] = useState('');
   const [upiEditMode, setUpiEditMode] = useState(false);
   const [tempUpiId, setTempUpiId] = useState(upiId);
   const [qrLoading, setQrLoading] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
 
-  // Load settings from localStorage on mount
+  // Load user data and settings from localStorage on mount
   useEffect(() => {
+    // Set business name from user data
+    if (user?.businessName) {
+      setBusinessName(user.businessName);
+    }
+    
     const savedSettings = localStorage.getItem('integrationSettings');
     if (savedSettings) {
       try {
@@ -79,9 +84,13 @@ const IntegrationsPage = () => {
 
   // Handle email alerts toggle
   const handleEmailAlertToggle = (enabled) => {
+    if (!user?.email) {
+      showToast('Please complete your profile with email address', 'error');
+      return;
+    }
     const newSettings = {
       ...settings,
-      emailAlerts: { ...settings.emailAlerts, enabled },
+      emailAlerts: { ...settings.emailAlerts, enabled, email: user.email },
     };
     saveSettings(newSettings);
   };

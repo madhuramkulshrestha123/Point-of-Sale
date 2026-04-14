@@ -87,32 +87,35 @@ How to access your POS:
 
 DESKTOP:
 1. Open your web browser
-2. Visit: https://your-pos-domain.com
+2. Visit: https://point-of-sale-m1.vercel.app
 3. Login with your Business ID/Email and PIN
 
 MOBILE:
 1. Open your mobile browser (Chrome/Safari)
-2. Visit: https://your-pos-domain.com
+2. Visit: https://point-of-sale-m1.vercel.app
 3. Login with your credentials
 4. Tap "Add to Home Screen" when prompted
 5. Launch POS from your home screen like a native app
 
 ANDROID APP:
 1. Open Chrome browser
-2. Visit: https://your-pos-domain.com
+2. Visit: https://point-of-sale-m1.vercel.app
 3. Tap the menu (three dots)
 4. Select "Install App" or "Add to Home Screen"
 5. POS will be installed on your device
 
 IOS APP:
 1. Open Safari browser
-2. Visit: https://your-pos-domain.com
+2. Visit: https://point-of-sale-m1.vercel.app
 3. Tap the Share button
 4. Select "Add to Home Screen"
 5. POS will be available on your home screen
 
 NEED HELP?
-Contact support if you need assistance.
+Contact us for assistance:
+Madhuram Kulshrestha
+Email: madhuramkulshrestha447@gmail.com
+Phone: 8958166530
 
 Thank you for choosing POS System!`,
             CustomID: 'RegistrationSuccess'

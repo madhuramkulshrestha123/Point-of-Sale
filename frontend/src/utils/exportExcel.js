@@ -5,18 +5,23 @@ import * as XLSX from 'xlsx';
  * @param {Array} data - Payments data
  * @param {Object} summary - Summary statistics
  * @param {Object} filters - Applied filters
+ * @param {Object} user - User data (optional)
  */
-export const exportPaymentsExcel = async (data, summary, filters) => {
+export const exportPaymentsExcel = async (data, summary, filters, user = null) => {
   // Create workbook
   const wb = XLSX.utils.book_new();
 
   // Prepare worksheet data
   const wsData = [];
 
-  // Header section
-  wsData.push(['M.K EXPORTS']);
-  wsData.push(['123, Auto Parts Market, Delhi']);
-  wsData.push(['GSTIN: 07ABCDE1234F1Z5']);
+  // Header section with user's business info
+  if (user?.businessName) {
+    wsData.push([user.businessName.toUpperCase()]);
+    if (user?.phone) wsData.push([`Phone: ${user.phone}`]);
+    if (user?.email) wsData.push([`Email: ${user.email}`]);
+  } else {
+    wsData.push(['POS System']);
+  }
   wsData.push(['']);
 
   // Report title and filters

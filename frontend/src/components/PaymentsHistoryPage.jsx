@@ -9,7 +9,22 @@ import { exportPaymentsExcel } from '../utils/exportExcel';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-const PaymentsHistoryPage = () => {
+const PaymentsHistoryPage = ({ user }) => {
+  // If user is not passed as prop, get from localStorage
+  const [currentUser, setCurrentUser] = useState(user || null);
+
+  useEffect(() => {
+    // Get user from props or localStorage
+    if (!user) {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        setCurrentUser(JSON.parse(userData));
+      }
+    } else {
+      setCurrentUser(user);
+    }
+  }, [user]);
+
   const [activeTab, setActiveTab] = useState('all'); // all, pending, completed
   const [payments, setPayments] = useState([]);
   const [pendingBills, setPendingBills] = useState([]);
@@ -383,8 +398,8 @@ const PaymentsHistoryPage = () => {
           paymentStatus: activeTab === 'completed' ? 'completed' : activeTab === 'pending' ? 'pending' : null,
         };
 
-        // Export PDF
-        await exportPaymentsPDF(payments, summary, filters);
+        // Export PDF with user data
+        await exportPaymentsPDF(payments, summary, filters, currentUser);
       }
     } catch (error) {
       console.error('PDF export error:', error);
@@ -422,8 +437,8 @@ const PaymentsHistoryPage = () => {
           paymentStatus: activeTab === 'completed' ? 'completed' : activeTab === 'pending' ? 'pending' : null,
         };
 
-        // Export Excel
-        await exportPaymentsExcel(payments, summary, filters);
+        // Export Excel with user data
+        await exportPaymentsExcel(payments, summary, filters, currentUser);
       }
     } catch (error) {
       console.error('Excel export error:', error);

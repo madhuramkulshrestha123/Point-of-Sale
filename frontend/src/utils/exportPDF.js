@@ -21,8 +21,9 @@ function formatCurrency(amount) {
  * @param {Array} data - Payments data
  * @param {Object} summary - Summary statistics
  * @param {Object} filters - Applied filters
+ * @param {Object} user - User data (optional)
  */
-export const exportPaymentsPDF = async (data, summary, filters) => {
+export const exportPaymentsPDF = async (data, summary, filters, user = null) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;
@@ -32,18 +33,24 @@ export const exportPaymentsPDF = async (data, summary, filters) => {
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(0, 0, 0);
-  doc.text('M.K EXPORTS', pageWidth / 2, 18, { align: 'center' });
+  
+  // Use user's business name or default
+  const businessName = user?.businessName || 'POS System';
+  doc.text(businessName.toUpperCase(), pageWidth / 2, 18, { align: 'center' });
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(80, 80, 80);
-  doc.text('123, Auto Parts Market, Delhi', pageWidth / 2, 24, { align: 'center' });
-
-  doc.setFontSize(8);
-  doc.text('GSTIN: 07ABCDE1234F1Z5', pageWidth / 2, 29, { align: 'center' });
-
-  doc.setFontSize(7);
-  doc.text('Contact: +91-9876543210', pageWidth / 2, 33, { align: 'center' });
+  
+  // Add user contact info if available
+  if (user?.phone || user?.email) {
+    const contactLines = [];
+    if (user.phone) contactLines.push(`Phone: ${user.phone}`);
+    if (user.email) contactLines.push(`Email: ${user.email}`);
+    contactLines.forEach((line, index) => {
+      doc.text(line, pageWidth / 2, 24 + (index * 5), { align: 'center' });
+    });
+  }
 
   // Horizontal divider
   doc.setDrawColor(60, 60, 60);
@@ -186,7 +193,8 @@ export const exportPaymentsPDF = async (data, summary, filters) => {
         doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(0, 0, 0);
-        doc.text('M.K EXPORTS', pageWidth / 2, 15, { align: 'center' });
+        const businessName = user?.businessName || 'POS System';
+        doc.text(businessName.toUpperCase(), pageWidth / 2, 15, { align: 'center' });
         
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
@@ -203,7 +211,7 @@ export const exportPaymentsPDF = async (data, summary, filters) => {
       const generatedText = `Generated on: ${currentDate.toLocaleDateString('en-IN')} ${currentDate.toLocaleTimeString('en-IN')}`;
       doc.text(generatedText, margin, pageHeight - 10);
       
-      doc.text('Powered by AutoParts POS', pageWidth / 2, pageHeight - 10, { align: 'center' });
+      doc.text('Powered by POS System', pageWidth / 2, pageHeight - 10, { align: 'center' });
       
       const totalPages = doc.internal.getNumberOfPages();
       doc.text(

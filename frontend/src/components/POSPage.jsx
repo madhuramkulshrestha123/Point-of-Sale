@@ -304,7 +304,7 @@ const POSPage = ({ user, onLogout, onRefreshUser }) => {
               {/* Top Header - Business Name */}
               <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3 text-center shadow-md">
                 <h1 className="text-xl font-bold text-white" style={{ fontFamily: '"Saira Stencil", cursive, sans-serif' }}>
-                  {user?.businessName || 'N.R AUTO PARTS'}
+                  {user?.businessName || 'POS System'}
                 </h1>
               </div>
               
