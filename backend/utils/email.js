@@ -1,57 +1,84 @@
 require('dotenv').config();
-const nodemailer = require('nodemailer');
-
-// Configure Mailjet SMTP transport
-const transporter = nodemailer.createTransport({
-  host: 'in-v3.mailjet.com',
-  port: 465, // Use SSL port
-  secure: true, // Use SSL
-  auth: {
-    user: process.env.MAILJET_API_KEY,
-    pass: process.env.MAILJET_SECRET_KEY,
-  },
-  connectionTimeout: 10000, // 10 seconds
-  socketTimeout: 10000, // 10 seconds
-});
 
 // Generate 6-digit OTP
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// Send OTP email
+// Send OTP email using Mailjet API
 const sendOTPEmail = async (email, otp) => {
   try {
-    const mailOptions = {
-      from: `"${process.env.SENDER_NAME}" <${process.env.SENDER_EMAIL}>`,
-      to: email,
-      subject: 'Your POS Registration OTP',
-      text: `Your OTP is: ${otp}
+    console.log('Attempting to send OTP email to:', email);
+    console.log('Using sender:', process.env.SENDER_EMAIL);
+
+    const response = await fetch('https://api.mailjet.com/v3.1/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${Buffer.from(`${process.env.MAILJET_API_KEY}:${process.env.MAILJET_SECRET_KEY}`).toString('base64')}`
+      },
+      body: JSON.stringify({
+        Messages: [
+          {
+            From: {
+              Email: process.env.SENDER_EMAIL,
+              Name: process.env.SENDER_NAME
+            },
+            To: [
+              {
+                Email: email
+              }
+            ],
+            Subject: 'Your POS Registration OTP',
+            TextPart: `Your OTP is: ${otp}
 
 This OTP is valid for 10 minutes.
 
 If you didn't request this, please ignore this email.`,
-    };
+            CustomID: 'OTPVerification'
+          }
+        ]
+      })
+    });
 
-    const result = await transporter.sendMail(mailOptions);
-    console.log('✅ OTP email sent successfully:', result.messageId);
-    return { success: true, messageId: result.messageId };
+    const result = await response.json();
+    
+    if (response.ok && result.Messages[0].Status === 'success') {
+      console.log('✅ OTP email sent successfully:', result.Messages[0].MessageID);
+      return { success: true, messageId: result.Messages[0].MessageID };
+    } else {
+      console.error('❌ Mailjet API error:', result);
+      return { success: false, error: result.ErrorMessage || 'Failed to send email' };
+    }
   } catch (error) {
     console.error('❌ Error sending OTP email:', error.message);
-    console.error('Error code:', error.code);
-    console.error('Using host: in-v3.mailjet.com, port: 465');
     return { success: false, error: error.message };
   }
 };
 
-// Send registration success email
+// Send registration success email using Mailjet API
 const sendRegistrationSuccessEmail = async (email, businessName) => {
   try {
-    const mailOptions = {
-      from: `"${process.env.SENDER_NAME}" <${process.env.SENDER_EMAIL}>`,
-      to: email,
-      subject: 'Registration Successful - Welcome to POS System',
-      text: `Welcome to POS System!
+    const response = await fetch('https://api.mailjet.com/v3.1/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${Buffer.from(`${process.env.MAILJET_API_KEY}:${process.env.MAILJET_SECRET_KEY}`).toString('base64')}`
+      },
+      body: JSON.stringify({
+        Messages: [
+          {
+            From: {
+              Email: process.env.SENDER_EMAIL,
+              Name: process.env.SENDER_NAME
+            },
+            To: [
+              {
+                Email: email
+              }
+            ],
+            Subject: 'Registration Successful - Welcome to POS System',
+            TextPart: `Welcome to POS System!
 
 Your registration was successful.
 Business Name: ${businessName}
@@ -88,13 +115,23 @@ NEED HELP?
 Contact support if you need assistance.
 
 Thank you for choosing POS System!`,
-    };
+            CustomID: 'RegistrationSuccess'
+          }
+        ]
+      })
+    });
 
-    const result = await transporter.sendMail(mailOptions);
-    console.log('Registration success email sent:', result.messageId);
-    return { success: true, messageId: result.messageId };
+    const result = await response.json();
+    
+    if (response.ok && result.Messages[0].Status === 'success') {
+      console.log('✅ Registration success email sent:', result.Messages[0].MessageID);
+      return { success: true, messageId: result.Messages[0].MessageID };
+    } else {
+      console.error('❌ Mailjet API error:', result);
+      return { success: false, error: result.ErrorMessage || 'Failed to send email' };
+    }
   } catch (error) {
-    console.error('Error sending registration email:', error);
+    console.error('❌ Error sending registration email:', error.message);
     return { success: false, error: error.message };
   }
 };
