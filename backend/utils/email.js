@@ -1,10 +1,15 @@
 require('dotenv').config();
-const Mailjet = require('node-mailjet');
+const nodemailer = require('nodemailer');
 
-// Initialize Mailjet client with API credentials
-const mailjet = new Mailjet({
-  apiKey: process.env.MAILJET_API_KEY,
-  apiSecret: process.env.MAILJET_SECRET_KEY
+// Configure Mailjet SMTP transport
+const transporter = nodemailer.createTransport({
+  host: 'in-v3.mailjet.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.MAILJET_API_KEY,
+    pass: process.env.MAILJET_SECRET_KEY,
+  },
 });
 
 // Generate 6-digit OTP
@@ -15,32 +20,20 @@ const generateOTP = () => {
 // Send OTP email
 const sendOTPEmail = async (email, otp) => {
   try {
-    const request = {
-      Messages: [
-        {
-          From: {
-            Email: process.env.SENDER_EMAIL,
-            Name: process.env.SENDER_NAME
-          },
-          To: [
-            {
-              Email: email
-            }
-          ],
-          Subject: 'Your POS Registration OTP',
-          TextPart: `Your OTP is: ${otp}
+    const mailOptions = {
+      from: `"${process.env.SENDER_NAME}" <${process.env.SENDER_EMAIL}>`,
+      to: email,
+      subject: 'Your POS Registration OTP',
+      text: `Your OTP is: ${otp}
 
 This OTP is valid for 10 minutes.
 
 If you didn't request this, please ignore this email.`,
-          CustomID: 'OTPVerification'
-        }
-      ]
     };
 
-    const result = await mailjet.post('send', { version: 'v3.1' }).request(request);
-    console.log('OTP email sent successfully:', result.body);
-    return { success: true, messageId: result.body.GlobalID || 'sent' };
+    const result = await transporter.sendMail(mailOptions);
+    console.log('OTP email sent successfully:', result.messageId);
+    return { success: true, messageId: result.messageId };
   } catch (error) {
     console.error('Error sending OTP email:', error);
     return { success: false, error: error.message };
@@ -50,20 +43,11 @@ If you didn't request this, please ignore this email.`,
 // Send registration success email
 const sendRegistrationSuccessEmail = async (email, businessName) => {
   try {
-    const request = {
-      Messages: [
-        {
-          From: {
-            Email: 'madhukull2701@gmail.com',
-            Name: 'POS System'
-          },
-          To: [
-            {
-              Email: email
-            }
-          ],
-          Subject: 'Registration Successful - Welcome to POS System',
-          TextPart: `Welcome to POS System!
+    const mailOptions = {
+      from: `"${process.env.SENDER_NAME}" <${process.env.SENDER_EMAIL}>`,
+      to: email,
+      subject: 'Registration Successful - Welcome to POS System',
+      text: `Welcome to POS System!
 
 Your registration was successful.
 Business Name: ${businessName}
@@ -100,14 +84,11 @@ NEED HELP?
 Contact support if you need assistance.
 
 Thank you for choosing POS System!`,
-          CustomID: 'RegistrationSuccess'
-        }
-      ]
     };
 
-    const result = await mailjet.post('send', { version: 'v3.1' }).request(request);
-    console.log('Registration success email sent:', result.body);
-    return { success: true, messageId: result.body.GlobalID || 'sent' };
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Registration success email sent:', result.messageId);
+    return { success: true, messageId: result.messageId };
   } catch (error) {
     console.error('Error sending registration email:', error);
     return { success: false, error: error.message };
