@@ -4,12 +4,14 @@ const nodemailer = require('nodemailer');
 // Configure Mailjet SMTP transport
 const transporter = nodemailer.createTransport({
   host: 'in-v3.mailjet.com',
-  port: 587,
-  secure: false,
+  port: 465, // Use SSL port
+  secure: true, // Use SSL
   auth: {
     user: process.env.MAILJET_API_KEY,
     pass: process.env.MAILJET_SECRET_KEY,
   },
+  connectionTimeout: 10000, // 10 seconds
+  socketTimeout: 10000, // 10 seconds
 });
 
 // Generate 6-digit OTP
@@ -32,10 +34,12 @@ If you didn't request this, please ignore this email.`,
     };
 
     const result = await transporter.sendMail(mailOptions);
-    console.log('OTP email sent successfully:', result.messageId);
+    console.log('✅ OTP email sent successfully:', result.messageId);
     return { success: true, messageId: result.messageId };
   } catch (error) {
-    console.error('Error sending OTP email:', error);
+    console.error('❌ Error sending OTP email:', error.message);
+    console.error('Error code:', error.code);
+    console.error('Using host: in-v3.mailjet.com, port: 465');
     return { success: false, error: error.message };
   }
 };
